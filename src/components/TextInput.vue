@@ -1,10 +1,21 @@
 <template>
   <h1>{{ welcome }}</h1>
-  <div v-if="modal">
-    <h1>{{ modal }}</h1>
-    <Modal />
-  </div>
-  <button @click="openModal">Open Modal</button>
+  <!-- add vuetify button -->
+  <v-dialog v-model="modal">
+    <template v-slot:activator="{ props }">
+      <v-btn color="primary" v-bind="props"> Open Modal </v-btn>
+    </template>
+
+    <v-card>
+      <v-card-text>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua.
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" block @click="closeModal">Close Dialog</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
   <div class="editor">
     <Editor class="editor" id="file-picker" :api-key="apiKey" :init="myInit" />
   </div>
@@ -58,13 +69,18 @@ export default {
 
           input.onchange = function () {
             var file = this.files[0];
-            
+            /*
+              This is where we need to intercept the file and upload it to our modal
+              and then return the URL of the uploaded file.
+            */
+
+            console.log(file);
+
             var reader = new FileReader();
             reader.onload = function () {
               /*
-                Note: Now we need to register the blob in TinyMCEs image blob
-                registry. In the next release this part hopefully won't be
-                necessary, as we are looking to handle it internally.
+                we need to register the blob in TinyMCEs image blob
+                registry.
               */
               var id = "blobid" + new Date().getTime();
               // eslint-disable-next-line no-undef
