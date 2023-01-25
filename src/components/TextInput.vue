@@ -1,5 +1,10 @@
 <template>
   <h1>{{ welcome }}</h1>
+  <div v-if="modal">
+    <h1>{{ modal }}</h1>
+    <Modal />
+  </div>
+  <button @click="openModal">Open Modal</button>
   <div class="editor">
     <Editor class="editor" id="file-picker" :api-key="apiKey" :init="myInit" />
   </div>
@@ -20,6 +25,7 @@ export default {
   },
   data() {
     return {
+      modal: false,
       apiKey: import.meta.env.VITE_APP_TINYMCE_API_KEY,
       myInit: {
         selector: "textarea#file-picker",
@@ -52,7 +58,7 @@ export default {
 
           input.onchange = function () {
             var file = this.files[0];
-
+            
             var reader = new FileReader();
             reader.onload = function () {
               /*
@@ -79,6 +85,14 @@ export default {
           "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
       },
     };
+  },
+  methods: {
+    openModal() {
+      this.modal = true;
+    },
+    closeModal() {
+      this.modal = false;
+    },
   },
 };
 </script>
