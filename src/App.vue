@@ -4,6 +4,6 @@ import TextInput from "./components/TextInput.vue";
 
 <template>
   <main>
-    <TextInput name="World" />
+    <TextInput name="Beta" />
   </main>
 </template>
