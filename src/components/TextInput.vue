@@ -1,7 +1,7 @@
 <template>
   <h1>{{ welcome }}</h1>
   <!-- add vuetify button -->
-  <v-dialog v-model="modal" width="unset" style="max-width: 80vw;">
+  <v-dialog v-model="modal" width="unset" style="max-width: 80vw">
     <template v-slot:activator="{ props }">
       <!-- insert the button the left -->
       <div class="upload-button">
@@ -14,20 +14,36 @@
 
     <v-card>
       <v-card-text v-if="cropImagesPage"> Crop your images </v-card-text>
-      <v-card-text v-else>
-        Upload your images
-      </v-card-text>
+      <v-card-text v-else> Upload your images </v-card-text>
 
       <div class="cropzone-container" v-if="cropImagesPage">
         <div class="cropzone">
           <!-- <img style="max-width: 100%;" :src="generateURL(files[0])" /> -->
-          <cropper ref="cropper" :src="generateURL(files[0])" @change="change" />
+          <cropper
+            ref="cropper"
+            :src="generateURL(files[0])"
+            @change="change"
+          />
         </div>
       </div>
 
-      <div v-else class="dropzone-container" @dragover="dragover" @dragleave="dragleave" @drop="drop">
-        <input type="file" multiple name="file" id="fileInput" class="hidden-input" @change="onChange" ref="file"
-          accept=".pdf,.jpg,.jpeg,.png" />
+      <div
+        v-else
+        class="dropzone-container"
+        @dragover="dragover"
+        @dragleave="dragleave"
+        @drop="drop"
+      >
+        <input
+          type="file"
+          multiple
+          name="file"
+          id="fileInput"
+          class="hidden-input"
+          @change="onChange"
+          ref="file"
+          accept=".pdf,.jpg,.jpeg,.png"
+        />
 
         <label for="fileInput" class="file-label">
           <div v-if="isDragging">Release to drop files here.</div>
@@ -43,7 +59,12 @@
               </p>
             </div>
             <div>
-              <button class="ml-2" type="button" @click="remove(files.indexOf(file))" title="Remove file">
+              <button
+                class="ml-2"
+                type="button"
+                @click="remove(files.indexOf(file))"
+                title="Remove file"
+              >
                 <b>×</b>
               </button>
             </div>
@@ -53,13 +74,25 @@
       <v-card-actions v-if="cropImagesPage">
         <div class="modal-actions">
           <v-btn color="primary" block @click="closeModal">Cancel</v-btn>
-          <v-btn color="primary" block @click="changeFile" :disabled="files.length === 0">Save</v-btn>
+          <v-btn
+            color="primary"
+            block
+            @click="changeFile"
+            :disabled="files.length === 0"
+            >Save</v-btn
+          >
         </div>
       </v-card-actions>
       <v-card-actions v-else>
         <div class="modal-actions">
           <v-btn color="primary" block @click="closeModal">Cancel</v-btn>
-          <v-btn color="primary" block @click="cropImages" :disabled="files.length === 0">Crop Images</v-btn>
+          <v-btn
+            color="primary"
+            block
+            @click="cropImages"
+            :disabled="files.length === 0"
+            >Crop Images</v-btn
+          >
         </div>
       </v-card-actions>
     </v-card>
@@ -77,8 +110,8 @@
 
 <script>
 import Editor from "@tinymce/tinymce-vue";
-import { Cropper } from 'vue-advanced-cropper';
-import 'vue-advanced-cropper/dist/style.css';
+import { Cropper } from "vue-advanced-cropper";
+import "vue-advanced-cropper/dist/style.css";
 
 export default {
   components: {
