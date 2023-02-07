@@ -12,18 +12,13 @@
       </div>
     </template>
 
-    <v-card>
-      <v-card-text v-if="cropImagesPage"> Crop your images </v-card-text>
-      <v-card-text v-else> Upload your images </v-card-text>
+    <v-card class="v-card">
+      <v-card-title v-if="cropImagesPage"> Crop your images </v-card-title>
+      <v-card-title v-else> Upload your images </v-card-title>
 
       <div class="cropzone-container" v-if="cropImagesPage">
         <div class="cropzone">
-          <!-- <img style="max-width: 100%;" :src="generateURL(files[0])" /> -->
-          <cropper
-            ref="cropper"
-            :src="generateURL(files[0])"
-            @change="change"
-          />
+          <cropper ref="cropper" :src="generateURL(files[0])" @change="change" />
         </div>
       </div>
 
@@ -43,8 +38,7 @@
           @change="onChange"
           ref="file"
           accept=".pdf,.jpg,.jpeg,.png"
-        />
-
+          />
         <label for="fileInput" class="file-label">
           <div v-if="isDragging">Release to drop files here.</div>
           <div v-else>Drop files here or <u>click here</u> to upload.</div>
@@ -53,18 +47,9 @@
           <div v-for="file in files" :key="file.name" class="preview-card">
             <div>
               <img class="preview-img" :src="generateURL(file)" />
-              <p>
-                {{ file.name }} -
-                {{ Math.round(file.size / 1000) + "kb" }}
-              </p>
             </div>
             <div>
-              <button
-                class="ml-2"
-                type="button"
-                @click="remove(files.indexOf(file))"
-                title="Remove file"
-              >
+              <button class="ml-2" type="button" @click="remove(files.indexOf(file))" title="Remove file">
                 <b>×</b>
               </button>
             </div>
@@ -74,25 +59,22 @@
       <v-card-actions v-if="cropImagesPage">
         <div class="modal-actions">
           <v-btn color="primary" block @click="closeModal">Cancel</v-btn>
-          <v-btn
-            color="primary"
-            block
-            @click="changeFile"
-            :disabled="files.length === 0"
-            >Save</v-btn
-          >
+          <v-btn color="primary" block @click="changeFile" :disabled="files.length === 0">Save</v-btn>
         </div>
       </v-card-actions>
       <v-card-actions v-else>
-        <div class="modal-actions">
-          <v-btn color="primary" block @click="closeModal">Cancel</v-btn>
-          <v-btn
-            color="primary"
-            block
-            @click="cropImages"
-            :disabled="files.length === 0"
-            >Crop Images</v-btn
-          >
+        <div class="modal-actions d-flex">
+          <div class="d-flex justify-center action-btn-div">
+            <v-btn color="primary" @click="closeModal">Cancel</v-btn>
+          </div>
+          <div class="d-flex justify-center action-btn-div">
+            <v-btn
+              color="primary"
+              @click="cropImages"
+              :disabled="files.length === 0"
+              >Crop Images</v-btn
+            >
+          </div>
         </div>
       </v-card-actions>
     </v-card>
@@ -190,7 +172,9 @@ export default {
   },
   methods: {
     onChange() {
-      this.files = [...this.$refs.file.files];
+      for (let i = 0; i < this.$refs.file.files.length; i++) {
+        this.files.push(this.$refs.file.files[i]);
+      }
     },
     dragover(e) {
       e.preventDefault();
