@@ -3,7 +3,6 @@
   <!-- add vuetify button -->
   <v-dialog v-model="modal" width="unset" style="max-width: 80vw">
     <template v-slot:activator="{ props }">
-      <!-- insert the button the left -->
       <div class="upload-button">
         <v-btn outlined color="primary" v-bind="props" @click="openModal">
           <v-icon right light> mdi-image </v-icon>
@@ -12,54 +11,56 @@
       </div>
     </template>
 
+
     <v-card class="v-card">
       <v-card-title v-if="cropImagesPage"> Crop your images </v-card-title>
       <v-card-title v-else> Upload your images </v-card-title>
-
       <div class="cropzone-container" v-if="cropImagesPage">
+        <div class="img-slider mx-auto" elevation="8">
+          <v-slide-group v-model="model" class="pa-4" center-active show-arrows>
+            <v-slide-group-item v-for="file in files" :key="file.name" v-slot="{ isSelected, toggle }">
+              <!-- add previews of the files -->
+              <div class="img-container ma-2">
+                <div>
+                  <img class="slide-img-preview" :src="generateURL(file)" />
+                </div>
+              </div>
+            </v-slide-group-item>
+          </v-slide-group>
+        </div>
         <div class="cropzone">
           <cropper ref="cropper" :src="generateURL(files[0])" @change="change" />
         </div>
       </div>
 
-      <div
-        v-else
-        class="dropzone-container"
-        @dragover="dragover"
-        @dragleave="dragleave"
-        @drop="drop"
-      >
-        <input
-          type="file"
-          multiple
-          name="file"
-          id="fileInput"
-          class="hidden-input"
-          @change="onChange"
-          ref="file"
-          accept=".pdf,.jpg,.jpeg,.png"
-          />
+      <div v-else class="dropzone-container" @dragover="dragover" @dragleave="dragleave" @drop="drop">
+        <input type="file" multiple name="file" id="fileInput" class="hidden-input" @change="onChange" ref="file"
+          accept=".pdf,.jpg,.jpeg,.png" />
         <label for="fileInput" class="file-label">
           <div v-if="isDragging">Release to drop files here.</div>
           <div v-else>Drop files here or <u>click here</u> to upload.</div>
         </label>
-        <div class="preview-container mt-4" v-if="files.length">
-          <div v-for="file in files" :key="file.name" class="preview-card">
+        <div class="preview-container" v-if="files.length">
+          <div class="img-container" v-for="file in files" :key="file.name">
             <div>
-              <img class="preview-img" :src="generateURL(file)" />
+              <button class="close-img-btn" type="button" @click="remove(files.indexOf(file))" title="Remove file">
+                <v-icon color="white"> mdi-close </v-icon>
+              </button>
             </div>
             <div>
-              <button class="ml-2" type="button" @click="remove(files.indexOf(file))" title="Remove file">
-                <b>×</b>
-              </button>
+              <img class="preview-img" :src="generateURL(file)" />
             </div>
           </div>
         </div>
       </div>
       <v-card-actions v-if="cropImagesPage">
-        <div class="modal-actions">
-          <v-btn color="primary" block @click="closeModal">Cancel</v-btn>
-          <v-btn color="primary" block @click="changeFile" :disabled="files.length === 0">Save</v-btn>
+        <div class="modal-actions d-flex">
+          <div class="d-flex justify-center action-btn-div">
+            <v-btn color="primary" block @click="closeModal">Cancel</v-btn>
+          </div>
+          <div class="d-flex justify-center action-btn-div">
+            <v-btn color="primary" block @click="changeFile" :disabled="files.length === 0">Save</v-btn>
+          </div>
         </div>
       </v-card-actions>
       <v-card-actions v-else>
@@ -68,12 +69,7 @@
             <v-btn color="primary" @click="closeModal">Cancel</v-btn>
           </div>
           <div class="d-flex justify-center action-btn-div">
-            <v-btn
-              color="primary"
-              @click="cropImages"
-              :disabled="files.length === 0"
-              >Crop Images</v-btn
-            >
+            <v-btn color="primary" @click="cropImages" :disabled="files.length === 0">Crop Images</v-btn>
           </div>
         </div>
       </v-card-actions>
@@ -103,6 +99,8 @@ export default {
     return {
       cropImagesPage: false,
       isDragging: false,
+      model: null,
+      items: [1, 2, 3, 4, 5, 6, 7, 8, 9],
       files: [],
       modal: false,
       apiKey: import.meta.env.VITE_APP_TINYMCE_API_KEY,
@@ -203,6 +201,8 @@ export default {
       this.modal = true;
     },
     closeModal() {
+      // clear files array
+      this.files = [];
       this.modal = false;
       this.cropImagesPage = false;
     },

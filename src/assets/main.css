@@ -8,11 +8,15 @@ body {
   text-align: center;
 }
 
+.img-slider {
+  max-width: 800px;
+}
+
 .v-card {
-  height: 450px;
-  max-height: 450px;
-  width: 560px;
-  max-width: 560px;
+  /* height: 500px;
+  max-height: 500px; */
+  width: 600px;
+  max-width: 600px;
 }
 
 /* upload-button on the left */
@@ -23,7 +27,13 @@ body {
 }
 
 .dropzone-container {
-  padding: 4rem;
+  padding: 2rem;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  flex: 1;
+}
+
+.cropzone-container {
   background: #f7fafc;
   border: 1px solid #e2e8f0;
   flex: 1;
@@ -44,21 +54,28 @@ body {
 }
 
 .preview-container {
-  display: flex;
-  margin-top: 2rem;
-}
-
-.preview-card {
-  display: flex;
-  width: 100%;
-  border: 1px solid #a2a2a2;
-  padding: 5px;
-  margin-left: 5px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-gap: 10px;
+  grid-template-rows: 1fr;
 }
 
 .preview-img {
-  width: 60%;
-  border-radius: 5px;
+  margin-top: 10px;
+  width: 90% !important;
+  position: relative;
+  overflow: visible;
+  z-index: 0;
+}
+
+.slide-img-preview {
+  margin-top: 10px;
+  width: 100px !important;
+}
+
+.img-container {
+  position: relative;
+  overflow: visible;
 }
 
 .modal-actions {
@@ -69,4 +86,15 @@ body {
 
 .action-btn-div {
   width: 50%;
+}
+
+.close-img-btn {
+  float: right;
+  top: 0px;
+  right: -1px;
+  position: absolute;
+  color: rgba(0, 0, 0, 0);
+  background-color: #B91E60;
+  border-radius: 50%;
+  z-index: 1;
 }
