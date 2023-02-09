@@ -270,27 +270,6 @@ export default {
       }
     },
     uploadFiles() {
-      // insert images in tinymce
-      // this.files.forEach((file) => {
-      //   const reader = new FileReader();
-      //   reader.onload = (e) => {
-      //     const id = "blobid" + new Date().getTime();
-      //     // eslint-disable-next-line no-undef
-      //     const blobCache = tinymce.activeEditor.editorUpload.blobCache;
-      //     const base64 = e.target.result.split(",")[1];
-      //     console.log(id, file, base64);
-      //     const blobInfo = blobCache.create(id, file, base64);
-      //     blobCache.add(blobInfo);
-
-      //     // call the callback and populate the Title field with the file name
-      //     // eslint-disable-next-line no-undef
-      //     tinymce.activeEditor.insertContent(
-      //       `<img src="${blobInfo.blobUri()}" alt="${file.name}" />`
-      //     );
-      //   };
-      //   reader.readAsDataURL(file);
-      // });
-      // insert cropped images in tinymce using the croppedImages array
       this.croppedImages.forEach((image) => {
         // eslint-disable-next-line no-undef
         tinymce.activeEditor.insertContent(
