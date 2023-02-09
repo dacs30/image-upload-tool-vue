@@ -27,10 +27,9 @@ body {
 }
 
 .selected {
-  background: #c3c3c3;
-  border: 1px solid #535353;
-  border-radius: 5px;
-  padding: 2px;
+  /* line on the bottom */
+  border-bottom: 2px solid #1e95b9;
+
 }
 
 .dropzone-container {
@@ -76,7 +75,7 @@ body {
 }
 
 .slide-img-preview {
-  margin-top: 10px;
+  margin-top: 5px;
   width: 100px !important;
 }
 
