@@ -13,14 +13,36 @@
 
 
     <v-card class="v-card">
-      <v-card-title v-if="cropImagesPage"> Crop your images </v-card-title>
+      <v-card-title v-if="cropImagesPage">
+        <!-- have the title with a back arrow on the left -->
+        <v-row class="v-card-title-component">
+          <v-col class="back-btn" cols="4">
+            <v-icon @click="cropImagesPage = false"> mdi-arrow-left </v-icon>
+          </v-col>
+          <v-col cols="4">
+            <div class="cropzone-title">Crop your images</div>
+          </v-col>
+          <v-col class="close-btn" cols="4" align="right">
+            <v-icon @click="closeModal"> mdi-close </v-icon>
+          </v-col>
+        </v-row>
+      </v-card-title>
       <v-card-title v-else> Upload your images </v-card-title>
       <div class="cropzone-container" v-if="cropImagesPage">
         <div class="img-slider mx-auto" elevation="8">
           <v-slide-group v-model="model" class="pa-4" center-active show-arrows>
-            <v-slide-group-item v-for="file in files" :key="file.name" v-slot="{ isSelected, toggle }">
-              <!-- add previews of the files -->
-              <div class="img-container ma-2">
+            <v-slide-group-item v-for="file in files" :key="file.name">
+              <!-- switch the image on cropper when selected -->
+              <!-- <div :class="{ 'img-container ma-2': true, selected: isSelected }"
+                @click="toggle,">
+                <div>
+                  <img class="slide-img-preview" :src="generateURL(file)" />
+                </div>
+              </div> -->
+              <!-- image has selected class if image is selectedImg -->
+              <div :class="{ 'img-container ma-2': true, selected: file === selectedImage }"
+                @click="changeSelectedImage(file)"
+              >
                 <div>
                   <img class="slide-img-preview" :src="generateURL(file)" />
                 </div>
@@ -29,7 +51,7 @@
           </v-slide-group>
         </div>
         <div class="cropzone">
-          <cropper ref="cropper" :src="generateURL(files[0])" @change="change" />
+          <cropper ref="cropper" :src="generateURL(selectedImage)" @change="change" />
         </div>
       </div>
 
@@ -58,8 +80,15 @@
           <div class="d-flex justify-center action-btn-div">
             <v-btn color="primary" block @click="closeModal">Cancel</v-btn>
           </div>
-          <div class="d-flex justify-center action-btn-div">
+          <!-- <div class="d-flex justify-center action-btn-div">
             <v-btn color="primary" block @click="changeFile" :disabled="files.length === 0">Save</v-btn>
+          </div> -->
+          <!-- if selected file is not the last one, have a next button. Otherwise, have a save -->
+          <div v-if="files.indexOf(selectedImage) !== files.length - 1" class="d-flex justify-center action-btn-div">
+            <v-btn color="primary" block @click="nextFile">Next</v-btn>
+          </div>
+          <div v-else class="d-flex justify-center action-btn-div">
+            <v-btn color="primary" block @click="nextFile" :disabled="files.length === 0">Save</v-btn>
           </div>
         </div>
       </v-card-actions>
@@ -102,8 +131,12 @@ export default {
       model: null,
       items: [1, 2, 3, 4, 5, 6, 7, 8, 9],
       files: [],
+      // have selected image as first file or null
+      selectedImage: null,
       modal: false,
       apiKey: import.meta.env.VITE_APP_TINYMCE_API_KEY,
+      // object to store cropped images
+      croppedImages: [],
       myInit: {
         selector: "textarea#file-picker",
         plugins: "image code",
@@ -173,6 +206,7 @@ export default {
       for (let i = 0; i < this.$refs.file.files.length; i++) {
         this.files.push(this.$refs.file.files[i]);
       }
+      this.selectedImage = this.files[0];
     },
     dragover(e) {
       e.preventDefault();
@@ -218,6 +252,52 @@ export default {
 
       this.closeModal();
       this.cropImagesPage = !this.cropImagesPage;
+    },
+    changeSelectedImage(file) {
+      this.selectedImage = file;
+    },
+    nextFile() {
+      const index = this.files.indexOf(this.selectedImage);
+      console.log("cropper result",this.$refs.cropper.getResult());
+      // transform image into blob/filebits
+      const { canvas } = this.$refs.cropper.getResult();
+      this.croppedImages.push(canvas.toDataURL());
+      // if index is last, call uploadFiles
+      if (index === this.files.length - 1) {
+        this.uploadFiles();
+      } else if (index < this.files.length - 1) {
+        this.changeSelectedImage(this.files[index + 1]);
+      }
+    },
+    uploadFiles() {
+      // insert images in tinymce
+      // this.files.forEach((file) => {
+      //   const reader = new FileReader();
+      //   reader.onload = (e) => {
+      //     const id = "blobid" + new Date().getTime();
+      //     // eslint-disable-next-line no-undef
+      //     const blobCache = tinymce.activeEditor.editorUpload.blobCache;
+      //     const base64 = e.target.result.split(",")[1];
+      //     console.log(id, file, base64);
+      //     const blobInfo = blobCache.create(id, file, base64);
+      //     blobCache.add(blobInfo);
+
+      //     // call the callback and populate the Title field with the file name
+      //     // eslint-disable-next-line no-undef
+      //     tinymce.activeEditor.insertContent(
+      //       `<img src="${blobInfo.blobUri()}" alt="${file.name}" />`
+      //     );
+      //   };
+      //   reader.readAsDataURL(file);
+      // });
+      // insert cropped images in tinymce using the croppedImages array
+      this.croppedImages.forEach((image) => {
+        // eslint-disable-next-line no-undef
+        tinymce.activeEditor.insertContent(
+          `<img src="${image}" alt="cropped image" />`
+        );
+      });
+      this.closeModal();
     },
   },
 };

@@ -13,8 +13,8 @@ body {
 }
 
 .v-card {
-  /* height: 500px;
-  max-height: 500px; */
+  /* height: 500px; */
+  min-height: 500px;
   width: 600px;
   max-width: 600px;
 }
@@ -24,6 +24,13 @@ body {
   align-items: flex-start;
   text-align: start;
   margin: 10px;
+}
+
+.selected {
+  background: #c3c3c3;
+  border: 1px solid #535353;
+  border-radius: 5px;
+  padding: 2px;
 }
 
 .dropzone-container {
@@ -97,4 +104,29 @@ body {
   background-color: #B91E60;
   border-radius: 50%;
   z-index: 1;
+}
+
+.back-btn {
+  float: left;
+  display: flex;
+  align-items: center;
+}
+
+.close-btn {
+  float: right;
+  /* display: flex;
+  margin-left: 90%;
+  position: absolute; */
+}
+
+.v-card-title {
+  /* center the text */
+  text-align: center;
+  padding-left: 50%;
+}
+
+.v-card-title-component {
+  /* center vertically */
+  display: flex;
+  align-items: center;
 }
