@@ -2,7 +2,7 @@
   <v-dialog v-model="modal" width="unset" style="max-width: 80vw">
     <template v-slot:activator="{ props }">
       <div class="upload-button">
-        <v-btn outlined color="primary" v-bind="props" @click="openModal">
+        <v-btn outlined color="info" variant="outlined" v-bind="props" @click="openModal">
           <v-icon right light> mdi-image </v-icon>
           INSERT IMAGE
         </v-btn>
@@ -73,20 +73,20 @@
             <v-btn color="primary" block @click="closeModal">Cancel</v-btn>
           </div>
           <div v-if="files.indexOf(selectedImage) !== files.length - 1" class="d-flex justify-center action-btn-div">
-            <v-btn color="primary" block @click="nextFile">Next</v-btn>
+            <v-btn color="info" block @click="nextFile">Next</v-btn>
           </div>
           <div v-else class="d-flex justify-center action-btn-div">
-            <v-btn color="primary" block @click="nextFile" :disabled="files.length === 0">Save</v-btn>
+            <v-btn color="info" block @click="nextFile" :disabled="files.length === 0">Save</v-btn>
           </div>
         </div>
       </v-card-actions>
       <v-card-actions v-else>
         <div class="modal-actions d-flex">
           <div class="d-flex justify-center action-btn-div">
-            <v-btn color="primary" @click="closeModal">Cancel</v-btn>
+            <v-btn color="info" @click="closeModal">Cancel</v-btn>
           </div>
           <div class="d-flex justify-center action-btn-div">
-            <v-btn color="primary" @click="showCropScreen" :disabled="files.length === 0">Crop Images</v-btn>
+            <v-btn color="info" @click="showCropScreen" :disabled="files.length === 0">Crop Images</v-btn>
           </div>
         </div>
       </v-card-actions>
