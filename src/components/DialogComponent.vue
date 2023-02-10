@@ -196,7 +196,7 @@ export default {
       this.croppedImages.forEach((image) => {
         // eslint-disable-next-line no-undef
         tinymce.activeEditor.insertContent(
-          `<img src="${image}" alt="cropped image" />`
+          `<img src="${image}" width="30%" alt="cropped image" />`
         );
       });
       this.closeModal();
