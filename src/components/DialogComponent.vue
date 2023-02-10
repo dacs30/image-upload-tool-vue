@@ -151,6 +151,10 @@ export default {
     closeModal() {
       // clear files array
       this.files = [];
+      // clear selected image
+      this.selectedImage = null;
+      // clear cropped images
+      this.croppedImages = [];
       this.modal = false;
       this.cropImagesPage = false;
     },
