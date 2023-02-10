@@ -70,7 +70,7 @@
       <v-card-actions v-if="cropImagesPage">
         <div class="modal-actions d-flex">
           <div class="d-flex justify-center action-btn-div">
-            <v-btn color="primary" block @click="closeModal">Cancel</v-btn>
+            <v-btn color="info" block @click="closeModal">Cancel</v-btn>
           </div>
           <div v-if="files.indexOf(selectedImage) !== files.length - 1" class="d-flex justify-center action-btn-div">
             <v-btn color="info" block @click="nextFile">Next</v-btn>
