@@ -93,6 +93,10 @@ export default {
       type: Function,
       required: true,
     },
+    croppedApiResults: {
+      type: Array,
+      required: true,
+    },
     generateURL: {
       type: Function,
       required: true,
@@ -129,6 +133,18 @@ export default {
         this.$props.changeSelectedImage(this.files[index + 1]);
       }
     },
+  },
+  mounted() {
+    this.$refs.cropper.setCoordinates({
+      x: this.$props.croppedApiResults[0].xmax,
+      y: this.$props.croppedApiResults[0].ymax,
+      width:
+        this.$props.croppedApiResults[0].xmax -
+        this.$props.croppedApiResults[0].xmin,
+      height:
+        this.$props.croppedApiResults[0].ymax -
+        this.$props.croppedApiResults[0].ymin,
+    });
   },
 };
 </script>

@@ -27,6 +27,7 @@
         :model="model"
         :selectedImage="selectedImage"
         :uploadFiles="uploadFiles"
+        :croppedApiResults="croppedApiResults"
       />
     </v-card>
     <v-card class="v-card" v-else>
@@ -37,6 +38,7 @@
         :generateURL="generateURL"
         :remove="remove"
         :showCropScreen="showCropScreen"
+        :croppedApiResults="croppedApiResults"
       />
     </v-card>
   </v-dialog>
@@ -60,6 +62,7 @@ export default {
       selectedImage: null, // have selected image as first file or null
       modal: false,
       croppedImages: [], // object to store cropped images
+      croppedApiResults: [], // object to store cropped images
     };
   },
   methods: {
