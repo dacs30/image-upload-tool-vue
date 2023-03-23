@@ -96,7 +96,7 @@ export default {
     drop(e) {
       e.preventDefault();
       this.$refs.file.files = e.dataTransfer.files;
-      this.$props.onChange();
+      this.onChange();
       this.isDragging = false;
     },
   },

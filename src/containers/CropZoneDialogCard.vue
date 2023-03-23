@@ -34,7 +34,7 @@
           <div :class="{
             'img-container ma-1': true,
             selected: file === selectedImage,
-          }" @click="changeSelectedImage(file)">
+          }" @click="clickedImage(file)">
             <div>
               <img class="slide-img-preview" :src="generateURL(file)" />
             </div>
@@ -128,7 +128,32 @@ export default {
         this.$props.uploadFiles();
       } else if (index < this.files.length - 1) {
         this.$props.changeSelectedImage(this.files[index + 1]);
+        this.$refs.cropper.setCoordinates({
+          x: this.$props.croppedApiResults[index + 1].xmax,
+          y: this.$props.croppedApiResults[index + 1].ymax,
+          width:
+            this.$props.croppedApiResults[index + 1].xmax -
+            this.$props.croppedApiResults[index + 1].xmin,
+          height:
+            this.$props.croppedApiResults[index + 1].ymax -
+            this.$props.croppedApiResults[index + 1].ymin,
+        });
       }
+    },
+    clickedImage(file) {
+      this.$props.changeSelectedImage(file);
+      // get index of the file
+      const index = this.$props.files.indexOf(file);
+      this.$refs.cropper.setCoordinates({
+        x: this.$props.croppedApiResults[index].xmax,
+        y: this.$props.croppedApiResults[index].ymax,
+        width:
+          this.$props.croppedApiResults[index].xmax -
+          this.$props.croppedApiResults[index].xmin,
+        height:
+          this.$props.croppedApiResults[index].ymax -
+          this.$props.croppedApiResults[index].ymin,
+      });
     },
   },
   mounted() {
