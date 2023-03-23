@@ -2,13 +2,7 @@
   <v-dialog v-model="modal" width="unset" style="max-width: 80vw">
     <template v-slot:activator="{ props }">
       <div class="upload-button">
-        <v-btn
-          outlined
-          color="info"
-          variant="outlined"
-          v-bind="props"
-          @click="openModal"
-        >
+        <v-btn outlined color="info" variant="outlined" v-bind="props" @click="openModal">
           <v-icon right light> mdi-image </v-icon>
           INSERT IMAGE
         </v-btn>
@@ -17,21 +11,17 @@
 
     <!-- have different cards depending on cropImagesPage -->
     <v-card class="v-card" v-if="cropImagesPage">
-      <CropZoneDialogCard
-        :change="change"
-        :changeSelectedImage="changeSelectedImage"
-        :closeModal="closeModal"
-        :croppedImages="croppedImages"
-        :files="files"
-        :generateURL="generateURL"
-        :model="model"
-        :selectedImage="selectedImage"
-        :uploadFiles="uploadFiles"
-        :croppedApiResults="croppedApiResults"
-      />
+      <CropZoneDialogCard :change="change" :changeSelectedImage="changeSelectedImage" :closeModal="closeModal"
+        :croppedImages="croppedImages" :files="files" :generateURL="generateURL" :model="model"
+        :selectedImage="selectedImage" :uploadFiles="uploadFiles" :croppedApiResults="croppedApiResults" />
     </v-card>
     <v-card class="v-card" v-else>
+      <!-- have a v-progreess-circulare if isLoading is true -->
+      <div v-if="isLoading" class="progress-circular">
+        <v-progress-circular :active="isLoading" indeterminate color="info"></v-progress-circular>
+      </div>
       <UploadZoneDialogCard
+        v-else
         :changeSelectedImage="changeSelectedImage"
         :closeModal="closeModal"
         :files="files"
@@ -47,6 +37,7 @@
 <script>
 import CropZoneDialogCard from "../containers/CropZoneDialogCard.vue";
 import UploadZoneDialogCard from "../containers/UploadZoneDialogCard.vue";
+import axios from "axios";
 
 export default {
   components: {
@@ -63,14 +54,17 @@ export default {
       modal: false,
       croppedImages: [], // object to store cropped images
       croppedApiResults: [], // object to store cropped images
+      isLoading: false,
     };
   },
   methods: {
     remove(i) {
       this.files.splice(i, 1);
+      this.croppedApiResults.splice(i, 1);
     },
     generateURL(file) {
-      if (!file) { // check if it is empty before generating url
+      if (!file) {
+        // check if it is empty before generating url
         return;
       }
       let fileSrc = URL.createObjectURL(file);
@@ -89,8 +83,28 @@ export default {
       this.files = [];
       this.modal = false;
       this.selectedImage = null;
+      this.croppedApiResults = [];
     },
-    showCropScreen() {
+    async showCropScreen() {
+      // upload each of the files to the api
+      this.isLoading = true;
+      for (let i = 0; i < this.files.length; i++) {
+        try {
+          const formData = new FormData();
+          formData.append("file", this.files[i]);
+          const response = await axios({
+            method: "post",
+            url: "http://127.0.0.1:5000/", // replace with your API endpoint
+            data: formData,
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+          console.log(response.data);
+          this.croppedApiResults.push(response.data);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+      this.isLoading = false;
       this.cropImagesPage = !this.cropImagesPage;
     },
     changeFile() {

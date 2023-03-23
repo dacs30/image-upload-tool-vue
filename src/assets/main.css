@@ -128,3 +128,13 @@ body {
   display: flex;
   align-items: center;
 }
+
+.progress-circular {
+  /* center the progress bar */
+  margin: auto;
+}
+
+.blur-alert {
+  /* blur the background */
+  text-align: justify;
+}

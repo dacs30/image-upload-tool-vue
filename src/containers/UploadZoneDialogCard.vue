@@ -28,15 +28,18 @@
         <v-btn color="info" @click="closeModal">Cancel</v-btn>
       </div>
       <div class="d-flex justify-center action-btn-div">
-        <v-btn color="info" @click="showCropScreen" :disabled="files.length === 0">Crop Images</v-btn>
+        <v-btn
+          color="info"
+          @click="showCropScreen"
+          :disabled="files.length === 0"
+          >Crop Images</v-btn
+        >
       </div>
     </div>
   </v-card-actions>
 </template>
 
 <script>
-import axios from "axios";
-
 export default {
   name: "UploadZoneDialogCard",
   props: {
@@ -75,25 +78,9 @@ export default {
     };
   },
   methods: {
-    async onChange() {
+    onChange() {
       for (let i = 0; i < this.$refs.file.files.length; i++) {
-        try {
-          const file = this.$refs.file.files[i];
-          this.$props.files.push(file);
-          // send file to api and wait for response
-          const formData = new FormData();
-          formData.append("file", file);
-          const response = await axios({
-            method: "post",
-            url: "http://127.0.0.1:5000/", // replace with your API endpoint
-            data: formData,
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-          console.log(response);
-          this.$props.croppedApiResults.push(response.data);
-        } catch (error) {
-          console.log("error", error);
-        }
+        this.$props.files.push(this.$refs.file.files[i]);
       }
       // emit the first file to the parent
       this.$props.changeSelectedImage(this.$props.files[0]);
