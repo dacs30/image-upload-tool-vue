@@ -11,9 +11,18 @@
 
     <!-- have different cards depending on cropImagesPage -->
     <v-card class="v-card" v-if="cropImagesPage">
-      <CropZoneDialogCard :change="change" :changeSelectedImage="changeSelectedImage" :closeModal="closeModal"
-        :croppedImages="croppedImages" :files="files" :generateURL="generateURL" :model="model"
-        :selectedImage="selectedImage" :uploadFiles="uploadFiles" :croppedApiResults="croppedApiResults" />
+      <CropZoneDialogCard
+        :change="change"
+        :changeSelectedImage="changeSelectedImage"
+        :closeModal="closeModal"
+        :croppedImages="croppedImages"
+        :files="files"
+        :generateURL="generateURL"
+        :model="model"
+        :selectedImage="selectedImage"
+        :uploadFiles="uploadFiles"
+        :croppedApiResults="croppedApiResults"
+        :goBackFromCroppedPages="goBackFromCroppedPages"/>
     </v-card>
     <v-card class="v-card" v-else>
       <!-- have a v-progreess-circulare if isLoading is true -->
@@ -61,6 +70,9 @@ export default {
     remove(i) {
       this.files.splice(i, 1);
       this.croppedApiResults.splice(i, 1);
+    },
+    goBackFromCroppedPages() {
+      this.cropImagesPage = false;
     },
     generateURL(file) {
       if (!file) {

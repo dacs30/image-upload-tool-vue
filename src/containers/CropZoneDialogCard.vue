@@ -3,7 +3,7 @@
     <!-- have the title with a back arrow on the left -->
     <v-row class="v-card-title-component">
       <v-col class="back-btn" cols="4">
-        <v-icon @click="cropImagesPage = false"> mdi-arrow-left </v-icon>
+        <v-icon @click="goBackFromCroppedPages"> mdi-arrow-left </v-icon>
       </v-col>
       <v-col cols="4">
         <div class="cropzone-title">Crop your images</div>
@@ -114,6 +114,10 @@ export default {
       type: Array,
       required: true,
     },
+    goBackFromCroppedPages: {
+      type: Function,
+      required: true,
+    },
   },
   methods: {
     nextFile() {
@@ -144,6 +148,10 @@ export default {
       this.$props.changeSelectedImage(file);
       // get index of the file
       const index = this.$props.files.indexOf(file);
+
+      const { canvas } = this.$refs.cropper.getResult();
+
+      this.$props.croppedImages.push(canvas.toDataURL());
       this.$refs.cropper.setCoordinates({
         x: this.$props.croppedApiResults[index].xmax,
         y: this.$props.croppedApiResults[index].ymax,
