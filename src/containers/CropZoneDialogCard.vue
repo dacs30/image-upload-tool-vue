@@ -30,11 +30,14 @@
     </div>
     <div class="img-slider mx-auto" elevation="8">
       <v-slide-group v-model="model" class="pa-2" center-active show-arrows>
-        <v-slide-group-item v-for="file in files" :key="file.name">
-          <div :class="{
-            'img-container ma-1': true,
-            selected: file === selectedImage,
-          }" @click="clickedImage(file)">
+        <v-slide-group-item v-for="(file, index) in files" :key="file.name">
+          <div
+            :class="{
+              'img-container ma-1': true,
+              selected: index === selectedIndex,
+            }"
+            @click="clickedImage(file)"
+          >
             <div>
               <img class="slide-img-preview" :src="generateURL(file)" />
             </div>
@@ -42,8 +45,28 @@
         </v-slide-group-item>
       </v-slide-group>
     </div>
+    <div class="d-flex justify-center">
+      <div>
+        <v-switch
+          v-model="switchModel"
+          hide-details
+          inset
+          :label="`${
+            switchModel ? 'Disable' : 'Enable'
+          } personal information detection`"
+          @change="changeCropper"
+        ></v-switch>
+      </div>
+    </div>
     <div class="cropzone">
-      <cropper class="cropper" ref="cropper" :src="generateURL(selectedImage)" @change="change" />
+      <!-- If for some reason you don't want to re render cropper, use v-once in this component -->
+      <cropper
+        :model="cropperModel"
+        class="cropper"
+        ref="cropper"
+        @change="saveCropperResults"
+        :src="generateURL(selectedImage)"
+      />
     </div>
   </div>
 
@@ -52,11 +75,20 @@
       <div class="d-flex justify-center action-btn-div">
         <v-btn color="info" block @click="closeModal">Cancel</v-btn>
       </div>
-      <div v-if="files.indexOf(selectedImage) !== files.length - 1" class="d-flex justify-center action-btn-div">
+      <div
+        v-if="selectedIndex !== files.length - 1"
+        class="d-flex justify-center action-btn-div"
+      >
         <v-btn color="info" block @click="nextFile">Next</v-btn>
       </div>
       <div v-else class="d-flex justify-center action-btn-div">
-        <v-btn color="info" block @click="nextFile" :disabled="files.length === 0">Save</v-btn>
+        <v-btn
+          color="info"
+          block
+          @click="nextFile"
+          :disabled="files.length === 0"
+          >Save</v-btn
+        >
       </div>
     </div>
   </v-card-actions>
@@ -75,6 +107,9 @@ export default {
     return {
       model: null,
       isBlurred: false,
+      switchModel: true,
+      selectedIndex: 0,
+      cropperData: null,
     };
   },
   props: {
@@ -94,15 +129,19 @@ export default {
       type: Array,
       required: true,
     },
+    cropperResults: {
+      type: Object,
+      required: true,
+    },
     generateURL: {
       type: Function,
       required: true,
     },
-    change: {
+    closeModal: {
       type: Function,
       required: true,
     },
-    closeModal: {
+    saveCropperResults: {
       type: Function,
       required: true,
     },
@@ -118,18 +157,49 @@ export default {
       type: Function,
       required: true,
     },
+    detectronFiles: {
+      type: Array,
+      required: true,
+    },
   },
   methods: {
     nextFile() {
-      const index = this.$props.files.indexOf(this.selectedImage);
+      let index = 0;
+
+      if (this.switchModel) {
+        if (this.$props.detectronFiles.indexOf(this.selectedImage) !== -1) {
+          index = this.$props.detectronFiles.indexOf(this.selectedImage);
+        } else {
+          index = this.$props.files.indexOf(this.selectedImage);
+        }
+      } else {
+        index = this.$props.files.indexOf(this.selectedImage);
+      }
 
       const { canvas } = this.$refs.cropper.getResult();
 
+      console.log("canvas", canvas);
+
       this.$props.croppedImages.push(canvas.toDataURL());
+
+      this.selectedIndex = index + 1;
+
+
+      console.log("index", index);
+      console.log("this.files.length", this.files.length);
 
       // if index is last, call uploadFiles
       if (index === this.files.length - 1) {
+        console.log("uploading files");
         this.$props.uploadFiles();
+      } else if (this.$props.cropperResults[index] !== null) {
+        this.$props.changeSelectedImage(this.files[index + 1]);
+        this.$refs.cropper.setCoordinates({
+          x: this.$props.cropperResults[index + 1].x,
+          y: this.$props.cropperResults[index + 1].y,
+          width: this.$props.cropperResults[index + 1].width,
+          height: this.$props.cropperResults[index + 1].height,
+        });
       } else if (index < this.files.length - 1) {
         this.$props.changeSelectedImage(this.files[index + 1]);
         this.$refs.cropper.setCoordinates({
@@ -145,23 +215,56 @@ export default {
       }
     },
     clickedImage(file) {
-      this.$props.changeSelectedImage(file);
       // get index of the file
       const index = this.$props.files.indexOf(file);
 
       const { canvas } = this.$refs.cropper.getResult();
 
-      this.$props.croppedImages.push(canvas.toDataURL());
-      this.$refs.cropper.setCoordinates({
-        x: this.$props.croppedApiResults[index].xmax,
-        y: this.$props.croppedApiResults[index].ymax,
-        width:
-          this.$props.croppedApiResults[index].xmax -
-          this.$props.croppedApiResults[index].xmin,
-        height:
-          this.$props.croppedApiResults[index].ymax -
-          this.$props.croppedApiResults[index].ymin,
-      });
+      // if switch is true, change selected image to detectron file
+      if (this.switchModel) {
+        this.$props.changeSelectedImage(this.$props.detectronFiles[index]);
+      } else {
+        this.$props.changeSelectedImage(this.$props.files[index]);
+      }
+
+      this.selectedIndex = index;
+
+      if (canvas) {
+        this.$props.croppedImages.push(canvas.toDataURL());
+      }
+
+      if (this.$props.cropperResults[index] !== null) {
+        this.$refs.cropper.setCoordinates({
+          x: this.$props.cropperResults[index + 1].x,
+          y: this.$props.cropperResults[index + 1].y,
+          width: this.$props.cropperResults[index + 1].width,
+          height: this.$props.cropperResults[index + 1].height,
+        });
+      } else {
+        this.$refs.cropper.setCoordinates({
+          x: this.$props.croppedApiResults[index].xmax,
+          y: this.$props.croppedApiResults[index].ymax,
+          width:
+            this.$props.croppedApiResults[index].xmax -
+            this.$props.croppedApiResults[index].xmin,
+          height:
+            this.$props.croppedApiResults[index].ymax -
+            this.$props.croppedApiResults[index].ymin,
+        });
+      }
+    },
+    changeCropper() {
+      if (this.switchModel) {
+        let index = this.$props.files.indexOf(this.selectedImage);
+        console.log(index);
+        return this.changeSelectedImage(this.$props.detectronFiles[index]);
+      } else {
+        let index = this.$props.detectronFiles.indexOf(this.selectedImage);
+        if (index === -1) {
+          index = this.$props.files.indexOf(this.selectedImage);
+        }
+        return this.changeSelectedImage(this.$props.files[index]);
+      }
     },
   },
   mounted() {
@@ -185,6 +288,10 @@ export default {
           this.$props.croppedApiResults[0].ymax -
           this.$props.croppedApiResults[0].ymin,
       });
+    }
+
+    if (this.$props.detectronFiles[0] !== undefined){
+      this.changeSelectedImage(this.$props.detectronFiles[0]);
     }
   },
 };

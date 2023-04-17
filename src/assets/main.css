@@ -138,3 +138,9 @@ body {
   /* blur the background */
   text-align: justify;
 }
+
+.switchContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

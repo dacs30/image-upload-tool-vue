@@ -2,7 +2,13 @@
   <v-dialog v-model="modal" width="unset" style="max-width: 80vw">
     <template v-slot:activator="{ props }">
       <div class="upload-button">
-        <v-btn outlined color="info" variant="outlined" v-bind="props" @click="openModal">
+        <v-btn
+          outlined
+          color="info"
+          variant="outlined"
+          v-bind="props"
+          @click="openModal"
+        >
           <v-icon right light> mdi-image </v-icon>
           INSERT IMAGE
         </v-btn>
@@ -12,8 +18,10 @@
     <!-- have different cards depending on cropImagesPage -->
     <v-card class="v-card" v-if="cropImagesPage">
       <CropZoneDialogCard
-        :change="change"
         :changeSelectedImage="changeSelectedImage"
+        :cropperResults="cropperResults"
+        :detectronFiles="detectronFiles"
+        :saveCropperResults="saveCropperResults"
         :closeModal="closeModal"
         :croppedImages="croppedImages"
         :files="files"
@@ -22,12 +30,17 @@
         :selectedImage="selectedImage"
         :uploadFiles="uploadFiles"
         :croppedApiResults="croppedApiResults"
-        :goBackFromCroppedPages="goBackFromCroppedPages"/>
+        :goBackFromCroppedPages="goBackFromCroppedPages"
+      />
     </v-card>
     <v-card class="v-card" v-else>
       <!-- have a v-progreess-circulare if isLoading is true -->
       <div v-if="isLoading" class="progress-circular">
-        <v-progress-circular :active="isLoading" indeterminate color="info"></v-progress-circular>
+        <v-progress-circular
+          :active="isLoading"
+          indeterminate
+          color="info"
+        ></v-progress-circular>
       </div>
       <UploadZoneDialogCard
         v-else
@@ -60,10 +73,12 @@ export default {
       model: null,
       files: [],
       selectedImage: null, // have selected image as first file or null
+      detectronFiles: [],
       modal: false,
       croppedImages: [], // object to store cropped images
       croppedApiResults: [], // object to store cropped images
       isLoading: false,
+      cropperResults: [],
     };
   },
   methods: {
@@ -76,14 +91,16 @@ export default {
     },
     generateURL(file) {
       if (!file) {
+        console.log("no file", file);
         // check if it is empty before generating url
         return;
       }
       let fileSrc = URL.createObjectURL(file);
       setTimeout(() => {
-        let fileSrc = URL.createObjectURL(file);
+        // Revoke the URL after one second
         URL.revokeObjectURL(fileSrc);
       }, 1000);
+
       return fileSrc;
     },
     openModal() {
@@ -96,6 +113,7 @@ export default {
       this.modal = false;
       this.selectedImage = null;
       this.croppedApiResults = [];
+      this.detectronFiles = [];
     },
     async showCropScreen() {
       // upload each of the files to the api
@@ -112,6 +130,23 @@ export default {
           });
           console.log(response.data);
           this.croppedApiResults.push(response.data);
+
+          let byteCharacters = atob(response.data.detectron);
+          let byteNumbers = new Array(byteCharacters.length);
+
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+
+          let byteArray = new Uint8Array(byteNumbers);
+
+          let file = new File([byteArray], "detectron.png", {
+            type: "image/png",
+          });
+
+          this.detectronFiles.push(file);
+
+          // this.croppedImages.push(response.data);
         } catch (error) {
           console.log(error);
         }
@@ -119,22 +154,13 @@ export default {
       this.isLoading = false;
       this.cropImagesPage = !this.cropImagesPage;
     },
-    changeFile() {
-      const result = this.$refs.cropper.getResult();
-
-      console.log(this.$refs.cropper.getResult());
-
-      this.files = [result.image.src];
-
-      this.closeModal();
-      this.cropImagesPage = !this.cropImagesPage;
-    },
     changeSelectedImage(file) {
       this.selectedImage = file;
     },
-    croppedCanvasReceived(cropData) {
-      const { canvas } = cropData;
-      this.croppedImages.push(canvas.toDataURL());
+    saveCropperResults(cropperResults) {
+      // add cropper results to cropperResults array
+      console.log(cropperResults);
+      this.cropperResults.push(cropperResults);
     },
     uploadFiles() {
       this.croppedImages.forEach((image) => {
