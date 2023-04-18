@@ -256,7 +256,8 @@ export default {
     changeCropper() {
       if (this.switchModel) {
         let index = this.$props.files.indexOf(this.selectedImage);
-        console.log(index);
+        console.log("From switch", index);
+        // check if there is a detectron file before changing selected image
         return this.changeSelectedImage(this.$props.detectronFiles[index]);
       } else {
         let index = this.$props.detectronFiles.indexOf(this.selectedImage);
@@ -268,6 +269,10 @@ export default {
     },
   },
   mounted() {
+    if (this.$props.detectronFiles[0] !== undefined){
+      this.changeSelectedImage(this.$props.detectronFiles[0]);
+    }
+
     if (this.$props.croppedApiResults.length != 0) {
       // if any of the images are blurred, show the alert
       let filteredBlurred = this.$props.croppedApiResults.filter(
@@ -288,10 +293,6 @@ export default {
           this.$props.croppedApiResults[0].ymax -
           this.$props.croppedApiResults[0].ymin,
       });
-    }
-
-    if (this.$props.detectronFiles[0] !== undefined){
-      this.changeSelectedImage(this.$props.detectronFiles[0]);
     }
   },
 };

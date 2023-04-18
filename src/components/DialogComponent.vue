@@ -144,9 +144,12 @@ export default {
             type: "image/png",
           });
 
-          this.detectronFiles.push(file);
-
-          // this.croppedImages.push(response.data);
+          // check if there is a file, if there is not, then push the first file
+          if (file === undefined) {
+            this.detectronFiles.push(this.files[i]);
+          } else {
+            this.detectronFiles.push(file);
+          }
         } catch (error) {
           console.log(error);
         }
