@@ -184,7 +184,6 @@ export default {
 
       this.selectedIndex = index + 1;
 
-
       console.log("index", index);
       console.log("this.files.length", this.files.length);
 
@@ -269,7 +268,7 @@ export default {
     },
   },
   mounted() {
-    if (this.$props.detectronFiles[0] !== undefined){
+    if (this.$props.detectronFiles[0] !== undefined) {
       this.changeSelectedImage(this.$props.detectronFiles[0]);
     }
 
