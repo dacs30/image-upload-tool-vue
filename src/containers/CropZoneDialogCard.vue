@@ -51,9 +51,9 @@
           v-model="switchModel"
           hide-details
           inset
-          :label="`${
-            switchModel ? 'Disable' : 'Enable'
-          } personal information detection`"
+          :label="`Personal information detection: ${
+            switchModel ? 'Enabled' : 'Disabled'
+          }`"
           @change="changeCropper"
         ></v-switch>
       </div>

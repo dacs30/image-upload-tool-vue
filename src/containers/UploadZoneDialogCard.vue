@@ -40,6 +40,20 @@
     </div>
   </div>
 
+  <div class="d-flex justify-center">
+      <div>
+        <v-switch
+          v-model="detectronSwitch"
+          hide-details
+          inset
+          :label="`Detectron: ${
+            detectronSwitch ? 'Enabled' : 'Disabled'
+          }`"
+          @change="$emit('change-detectron')"
+        ></v-switch>
+      </div>
+    </div>
+
   <v-card-actions>
     <div class="modal-actions d-flex">
       <div class="d-flex justify-center action-btn-div">
@@ -60,6 +74,12 @@
 <script>
 export default {
   name: "UploadZoneDialogCard",
+  data() {
+    return {
+      detectronSwitch: false,
+    };
+  },
+  emits: ['change-detectron'],
   props: {
     closeModal: {
       type: Function,

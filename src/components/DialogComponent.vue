@@ -51,6 +51,7 @@
         :remove="remove"
         :showCropScreen="showCropScreen"
         :croppedApiResults="croppedApiResults"
+        @change-detectron="changeDetectron"
       />
     </v-card>
   </v-dialog>
@@ -79,6 +80,7 @@ export default {
       croppedApiResults: [], // object to store cropped images
       isLoading: false,
       cropperResults: [],
+      doDetectron: false,
     };
   },
   methods: {
@@ -105,6 +107,7 @@ export default {
     },
     openModal() {
       this.modal = true;
+      this.doDetectron = false; // Resets the detectron to false, stupid bugfix
     },
     closeModal() {
       this.cropImagesPage = false;
@@ -115,6 +118,10 @@ export default {
       this.croppedApiResults = [];
       this.detectronFiles = [];
     },
+    changeDetectron() {
+      this.doDetectron = !this.doDetectron;
+      console.log("Changed detectron. New: " + this.doDetectron);
+    },
     async showCropScreen() {
       // upload each of the files to the api
       this.isLoading = true;
@@ -122,6 +129,7 @@ export default {
         try {
           const formData = new FormData();
           formData.append("file", this.files[i]);
+          formData.append("doDetectron", this.doDetectron); // todo: hardcoded -> doDetectron value
           const response = await axios({
             method: "post",
             url: "http://127.0.0.1:5000/", // replace with your API endpoint
