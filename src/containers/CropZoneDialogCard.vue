@@ -49,6 +49,7 @@
       <div>
         <v-switch
           v-model="switchModel"
+          v-if="detectronEnabled"
           hide-details
           inset
           :label="`Personal information detection: ${
@@ -159,6 +160,10 @@ export default {
     },
     detectronFiles: {
       type: Array,
+      required: true,
+    },
+    detectronEnabled: {
+      type: Boolean,
       required: true,
     },
   },

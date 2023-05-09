@@ -31,6 +31,7 @@
         :uploadFiles="uploadFiles"
         :croppedApiResults="croppedApiResults"
         :goBackFromCroppedPages="goBackFromCroppedPages"
+        :detectronEnabled="detectronEnabled"
       />
     </v-card>
     <v-card class="v-card" v-else>
@@ -81,6 +82,7 @@ export default {
       isLoading: false,
       cropperResults: [],
       doDetectron: false,
+      detectronEnabled: false,
     };
   },
   methods: {
@@ -120,22 +122,27 @@ export default {
     },
     changeDetectron() {
       this.doDetectron = !this.doDetectron;
-      console.log("Changed detectron. New: " + this.doDetectron);
+      console.log("Changed detectron. New: " + this.detectronEnabled);
     },
     async showCropScreen() {
       // upload each of the files to the api
       this.isLoading = true;
       for (let i = 0; i < this.files.length; i++) {
         try {
+
+          this.detectronEnabled = this.doDetectron;
+
           const formData = new FormData();
           formData.append("file", this.files[i]);
           formData.append("doDetectron", this.doDetectron); // todo: hardcoded -> doDetectron value
+
           const response = await axios({
             method: "post",
             url: "http://127.0.0.1:5000/", // replace with your API endpoint
             data: formData,
             headers: { "Content-Type": "multipart/form-data" },
           });
+          
           console.log(response.data);
           this.croppedApiResults.push(response.data);
 
