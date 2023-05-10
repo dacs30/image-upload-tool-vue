@@ -1,6 +1,8 @@
 <template>
   <v-card-title> Upload your images </v-card-title>
-
+  <div>
+  <v-checkbox v-model="applyDetectron" label="Use Detectron to block out PII"></v-checkbox>
+  </div>
   <div
     class="dropzone-container"
     @dragover="dragover"
@@ -48,7 +50,7 @@
       <div class="d-flex justify-center action-btn-div">
         <v-btn
           color="info"
-          @click="showCropScreen"
+          @click="showCropScreen(this.applyDetectron)"
           :disabled="files.length === 0"
           >Crop Images</v-btn
         >
@@ -93,6 +95,7 @@ export default {
   data() {
     return {
       isDragging: false,
+      applyDetectron: false,
     };
   },
   methods: {

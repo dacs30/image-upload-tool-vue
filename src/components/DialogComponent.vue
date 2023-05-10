@@ -115,13 +115,15 @@ export default {
       this.croppedApiResults = [];
       this.detectronFiles = [];
     },
-    async showCropScreen() {
+    async showCropScreen(applyDetectron) {
       // upload each of the files to the api
       this.isLoading = true;
       for (let i = 0; i < this.files.length; i++) {
         try {
           const formData = new FormData();
           formData.append("file", this.files[i]);
+          applyDetectron ? formData.append("applyDetectron", 'true') : formData.append("applyDetectron",'false');
+          console.log(applyDetectron);
           const response = await axios({
             method: "post",
             url: "http://127.0.0.1:5000/", // replace with your API endpoint
