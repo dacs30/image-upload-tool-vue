@@ -73,9 +73,10 @@
         class="cropper"
         ref="cropper"
         @change="saveCropperResults"
-        @mousedown="beginDrag"
-        @mouseup="endDrag"
+        @mousedown.middle="beginDrag"
+        @mouseup.middle="endDrag"
         :src="generateURL(selectedImage)"
+        id="cropper"
       />
     </div>
   </div>
@@ -183,8 +184,11 @@ export default {
     beginDrag(event) {
       if(!this.manualCropMode) return;
 
-      this.origDragX = (event.clientX - 660) * 2.2;
-      this.origDragY = (event.screenY - 401) * 2.2;
+      let cropBox = document.getElementById('cropper').getBoundingClientRect();
+
+      // don't ask about the 2.2
+      this.origDragX = (event.clientX - cropBox.left) * 2.2;
+      this.origDragY = (event.clientY - cropBox.top) * 2.2;
 
       this.$refs.cropper.setCoordinates({
         left: this.origDragX,
@@ -193,17 +197,17 @@ export default {
         height: 1
       });
       
-      // console.log("event x: ", event.target.offsetLeft);
-      // console.log("event y: ", event.target.offsetTop);
     },
     endDrag(event) {
       if(!this.manualCropMode) return;
 
+      let cropBox = document.getElementById('cropper').getBoundingClientRect();
+
       this.$refs.cropper.setCoordinates({
         left: this.origDragX,
         top: this.origDragY,
-        width: (event.clientX - 660) * 2.2 - this.origDragX,
-        height: (event.screenY - 401) * 2.2 - this.origDragY,
+        width: (event.clientX - cropBox.left) * 2.2 - this.origDragX,
+        height: (event.clientY - cropBox.top) * 2.2 - this.origDragY,
       });
 
     },
@@ -228,8 +232,8 @@ export default {
       if(index === -1) index = 0;
 
       this.$refs.cropper.setCoordinates({
-          left: this.$props.croppedApiResults[index].xmax,
-          top: this.$props.croppedApiResults[index].ymax,
+          left: this.$props.croppedApiResults[index].xmin,
+          top: this.$props.croppedApiResults[index].ymin,
           width:
             this.$props.croppedApiResults[index].xmax -
             this.$props.croppedApiResults[index].xmin,
