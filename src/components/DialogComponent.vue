@@ -122,7 +122,7 @@ export default {
     },
     changeDetectron() {
       this.doDetectron = !this.doDetectron;
-      console.log("Changed detectron. New: " + this.detectronEnabled);
+      console.log("Changed detectron. New: " + this.doDetectron);
     },
     async showCropScreen() {
       // upload each of the files to the api
@@ -134,7 +134,7 @@ export default {
 
           const formData = new FormData();
           formData.append("file", this.files[i]);
-          formData.append("doDetectron", this.doDetectron); // todo: hardcoded -> doDetectron value
+          formData.append("doDetectron", this.doDetectron);
 
           const response = await axios({
             method: "post",

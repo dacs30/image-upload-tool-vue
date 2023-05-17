@@ -20,7 +20,7 @@
         type="info"
         v-model="isBlurred"
         variant="tonal"
-        text=" One of images look to be blurred. You can got back and re-upload them,
+        text=" One of images look to be blurred. You can go back and re-upload them,
           if you want."
         closable
         close-label="Close Alert"
@@ -46,6 +46,13 @@
       </v-slide-group>
     </div>
     <div class="d-flex justify-center">
+      <v-btn color="info" @click="manualCrop" variant="outlined">Manual Crop</v-btn>
+      <div class="pr-2"></div>
+      <v-btn color="info" @click="clearCrop" variant="outlined">Clear</v-btn>
+      <div class="pr-2"></div>
+      <v-btn color="info" @click="resetToAutomaticCrop" variant="outlined">Automatic Crop</v-btn>
+    </div>
+    <div class="d-flex justify-center">
       <div>
         <v-switch
           v-model="switchModel"
@@ -66,11 +73,12 @@
         class="cropper"
         ref="cropper"
         @change="saveCropperResults"
+        @mousedown="beginDrag"
+        @mouseup="endDrag"
         :src="generateURL(selectedImage)"
       />
     </div>
   </div>
-
   <v-card-actions>
     <div class="modal-actions d-flex">
       <div class="d-flex justify-center action-btn-div">
@@ -111,6 +119,10 @@ export default {
       switchModel: true,
       selectedIndex: 0,
       cropperData: null,
+      manualCropMode: false,
+      cropperModel: null,
+      origDragX: 0,
+      origDragY: 0,
     };
   },
   props: {
@@ -168,6 +180,64 @@ export default {
     },
   },
   methods: {
+    beginDrag(event) {
+      if(!this.manualCropMode) return;
+
+      this.origDragX = (event.clientX - 660) * 2.2;
+      this.origDragY = (event.screenY - 401) * 2.2;
+
+      this.$refs.cropper.setCoordinates({
+        left: this.origDragX,
+        top: this.origDragY,
+        width: 1,
+        height: 1
+      });
+      
+      // console.log("event x: ", event.target.offsetLeft);
+      // console.log("event y: ", event.target.offsetTop);
+    },
+    endDrag(event) {
+      if(!this.manualCropMode) return;
+
+      this.$refs.cropper.setCoordinates({
+        left: this.origDragX,
+        top: this.origDragY,
+        width: (event.clientX - 660) * 2.2 - this.origDragX,
+        height: (event.screenY - 401) * 2.2 - this.origDragY,
+      });
+
+    },
+    manualCrop() {
+      if(this.manualCropMode) return;
+      console.log("Entering manual crop mode.");
+      this.manualCropMode = true;
+      this.$refs.cropper.setCoordinates({left: 200, top: 200, width: 1, height: 1});
+    },
+    clearCrop() {
+      if(this.manualCropMode) {
+        console.log("Clearing the crop.");
+        this.$refs.cropper.setCoordinates({left: 0, top: 0, width: 1, height: 1});
+      }
+    },
+    resetToAutomaticCrop() {
+      console.log("Resetting crop to automatic crop.");
+      this.manualCropMode = false;
+
+      let index = this.$props.files.indexOf(this.selectedImage);
+      let data = this.$props.croppedApiResults[index];
+      if(index === -1) index = 0;
+
+      this.$refs.cropper.setCoordinates({
+          left: this.$props.croppedApiResults[index].xmax,
+          top: this.$props.croppedApiResults[index].ymax,
+          width:
+            this.$props.croppedApiResults[index].xmax -
+            this.$props.croppedApiResults[index].xmin,
+          height:
+            this.$props.croppedApiResults[index].ymax -
+            this.$props.croppedApiResults[index].ymin,
+        });
+    },
     nextFile() {
       let index = 0;
 
