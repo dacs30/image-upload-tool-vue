@@ -186,9 +186,13 @@ export default {
 
       let cropBox = document.getElementById('cropper').getBoundingClientRect();
 
+      // console.log("Zoom ratio: ", this.$refs.cropper.visibleArea.width / this.$refs.cropper.imageSize.width);
+      console.log("Visible width: ", this.$refs.cropper.visibleArea.width);
+      console.log("Total width: ", this.$refs.cropper.imageSize.width);
+
       // don't ask about the 2.2
-      this.origDragX = (event.clientX - cropBox.left) * 2.2;
-      this.origDragY = (event.clientY - cropBox.top) * 2.2;
+      this.origDragX = (event.clientX - cropBox.left) * this.$refs.cropper.imageSize.width / 586;
+      this.origDragY = (event.clientY - cropBox.top) * this.$refs.cropper.imageSize.width / 586;
 
       this.$refs.cropper.setCoordinates({
         left: this.origDragX,
@@ -206,8 +210,8 @@ export default {
       this.$refs.cropper.setCoordinates({
         left: this.origDragX,
         top: this.origDragY,
-        width: (event.clientX - cropBox.left) * 2.2 - this.origDragX,
-        height: (event.clientY - cropBox.top) * 2.2 - this.origDragY,
+        width: (event.clientX - cropBox.left) * (this.$refs.cropper.imageSize.width / 586) - this.origDragX,
+        height: (event.clientY - cropBox.top) * (this.$refs.cropper.imageSize.width / 586) - this.origDragY,
       });
 
     },
