@@ -120,13 +120,13 @@ export default {
       model: null,
       isBlurred: false,
       switchModel: true,
-      selectedIndex: 0,
+      selectedIndex: 0, // The index of the selected image
       cropperData: null,
-      manualCropMode: false,
+      manualCropMode: false, // If the user is manually cropping
       cropperModel: null,
-      origDragX: 0,
-      origDragY: 0,
-      manualCropping: false,
+      origDragX: 0, // When manually cropping, the left x-coord of the box
+      origDragY: 0, // When manually cropping, the top y-coord of the box
+      manualCropping: false, // If the user is currently dragging the box
     };
   },
   props: {
@@ -184,6 +184,10 @@ export default {
     },
   },
   methods: {
+    /**
+     * Checks if the cropper results should be saved; if they should, saves them.
+     * The cropper results will be saved if the default box has been modified and the user is in the "manual cropping" mode
+     */
     checkSaveCropperResults() {
       // Check if the box has not been modified
       if(this.$refs.cropper.coordinates.left === 0
@@ -195,19 +199,17 @@ export default {
       if(!this.manualCropMode) return;
 
       this.saveCropperResults(this.$refs.cropper.coordinates, this.selectedIndex);
-
-      // console.log("Cropper results saved.");
     },
+    /**
+     * Initializes everything needed for the click-and-drag functionality of the cropper box
+     * @param {*} event The event. Passed by v-on.
+     */
     beginDrag(event) {
       if(!this.manualCropMode) return;
 
       this.manualCropping = true;
 
       let cropBox = document.getElementById('cropper').getBoundingClientRect();
-
-      // console.log("Zoom ratio: ", this.$refs.cropper.visibleArea.width / this.$refs.cropper.imageSize.width);
-      // console.log("Visible width: ", this.$refs.cropper.visibleArea.width);
-      // console.log("Total width: ", this.$refs.cropper.imageSize.width);
 
       this.origDragX = (event.clientX - cropBox.left) * this.$refs.cropper.imageSize.width / cropBox.width;
       this.origDragY = (event.clientY - cropBox.top) * this.$refs.cropper.imageSize.height / cropBox.height;
@@ -219,6 +221,10 @@ export default {
         height: 1
       });
     },
+    /**
+     * Updates the cropper box when  the mouse is moved and we are in the click-and-drag state
+     * @param {*} event The event. Passed by v-on.
+     */
     mouseMove(event) {
       if(this.manualCropping) {
 
@@ -230,10 +236,12 @@ export default {
           width: (event.clientX - cropBox.left) * (this.$refs.cropper.imageSize.width / cropBox.width) - this.origDragX,
           height: (event.clientY - cropBox.top) * (this.$refs.cropper.imageSize.height / cropBox.height) - this.origDragY,
         });
-
-        // this.$refs.cropper.refresh();
       }
       },
+      /**
+       * Finishes the click-and-drag cropper box. Sets the final coordinates of the box and saves them.
+       * @param {*} event The event. Passed by v-on.
+       */
     endDrag(event) {
       if(!this.manualCropMode) return;
 
@@ -251,17 +259,16 @@ export default {
       this.manualCropping = false;
 
     },
+    /**
+     * Ititializes the manual crop mode when  the "manual crop" button is pressed. This means setting to cropper box coordinates to the saved coordinates, if there are any.
+     */
     manualCrop() {
       if(this.manualCropMode) return;
       console.log("Entering manual crop mode.");
       this.manualCropMode = true;
-
-      // console.log("Cropper results: ", this.$props.cropperResults[this.selectedIndex]);
       
       // There are saved cropper results
       if (this.$props.cropperResults[this.selectedIndex] !== undefined) {
-
-        // console.log("Loading saved cropper results.");
 
         this.$refs.cropper.setCoordinates({
           left: this.$props.cropperResults[this.selectedIndex].left,
@@ -272,19 +279,24 @@ export default {
       }
       // There are no saved cropper results
       else {
-        // console.log("No saved cropper results.");
         this.$refs.cropper.setCoordinates({left: 0, top: 0, width: 1, height: 1});
       }
     },
+    /**
+     * Clears the cropper box and saves the results
+     */
     clearCrop() {
       if(this.manualCropMode) {
-        // console.log("Clearing the crop.");
         this.$refs.cropper.setCoordinates({left: 0, top: 0, width: 1, height: 1});
       }
       this.saveCropperResults(this.$refs.cropper.coordinates, this.selectedIndex);
     },
+    /**
+     * Changes the crop mode to automatic crop:
+     * - Loads the coordinates that were passed by yolov7
+     * Any changes in automatic crop mode will not be saved.
+     */
     resetToAutomaticCrop() {
-      // console.log("Resetting crop to automatic crop.");
       this.manualCropMode = false;
 
       this.$refs.cropper.setCoordinates({
