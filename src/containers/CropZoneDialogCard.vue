@@ -72,11 +72,13 @@
         :model="cropperModel"
         class="cropper"
         ref="cropper"
-        @change="saveCropperResults"
+        @change="checkSaveCropperResults"
         @mousedown.middle="beginDrag"
         @mouseup.middle="endDrag"
+        @mousemove="mouseMove"
         :src="generateURL(selectedImage)"
         id="cropper"
+        :resizeImage="{ wheel: false }"
       />
     </div>
   </div>
@@ -124,6 +126,7 @@ export default {
       cropperModel: null,
       origDragX: 0,
       origDragY: 0,
+      manualCropping: false,
     };
   },
   props: {
@@ -181,18 +184,33 @@ export default {
     },
   },
   methods: {
+    checkSaveCropperResults() {
+      // Check if the box has not been modified
+      if(this.$refs.cropper.coordinates.left === 0
+      && this.$refs.cropper.coordinates.top === 0
+      && this.$refs.cropper.coordinates.width === 1
+      && this.$refs.cropper.coordinates.height === 1) return;
+
+      // Make sure the user is cropping manually
+      if(!this.manualCropMode) return;
+
+      this.saveCropperResults(this.$refs.cropper.coordinates, this.selectedIndex);
+
+      // console.log("Cropper results saved.");
+    },
     beginDrag(event) {
       if(!this.manualCropMode) return;
+
+      this.manualCropping = true;
 
       let cropBox = document.getElementById('cropper').getBoundingClientRect();
 
       // console.log("Zoom ratio: ", this.$refs.cropper.visibleArea.width / this.$refs.cropper.imageSize.width);
-      console.log("Visible width: ", this.$refs.cropper.visibleArea.width);
-      console.log("Total width: ", this.$refs.cropper.imageSize.width);
+      // console.log("Visible width: ", this.$refs.cropper.visibleArea.width);
+      // console.log("Total width: ", this.$refs.cropper.imageSize.width);
 
-      // don't ask about the 2.2
-      this.origDragX = (event.clientX - cropBox.left) * this.$refs.cropper.imageSize.width / 586;
-      this.origDragY = (event.clientY - cropBox.top) * this.$refs.cropper.imageSize.width / 586;
+      this.origDragX = (event.clientX - cropBox.left) * this.$refs.cropper.imageSize.width / cropBox.width;
+      this.origDragY = (event.clientY - cropBox.top) * this.$refs.cropper.imageSize.height / cropBox.height;
 
       this.$refs.cropper.setCoordinates({
         left: this.origDragX,
@@ -200,8 +218,22 @@ export default {
         width: 1,
         height: 1
       });
-      
     },
+    mouseMove(event) {
+      if(this.manualCropping) {
+
+        let cropBox = document.getElementById('cropper').getBoundingClientRect();
+
+        this.$refs.cropper.setCoordinates({
+          left: this.origDragX,
+          top: this.origDragY,
+          width: (event.clientX - cropBox.left) * (this.$refs.cropper.imageSize.width / cropBox.width) - this.origDragX,
+          height: (event.clientY - cropBox.top) * (this.$refs.cropper.imageSize.height / cropBox.height) - this.origDragY,
+        });
+
+        // this.$refs.cropper.refresh();
+      }
+      },
     endDrag(event) {
       if(!this.manualCropMode) return;
 
@@ -214,36 +246,56 @@ export default {
         height: (event.clientY - cropBox.top) * (this.$refs.cropper.imageSize.width / 586) - this.origDragY,
       });
 
+      this.saveCropperResults(this.$refs.cropper.coordinates, this.selectedIndex);
+
+      this.manualCropping = false;
+
     },
     manualCrop() {
       if(this.manualCropMode) return;
       console.log("Entering manual crop mode.");
       this.manualCropMode = true;
-      this.$refs.cropper.setCoordinates({left: 200, top: 200, width: 1, height: 1});
-    },
-    clearCrop() {
-      if(this.manualCropMode) {
-        console.log("Clearing the crop.");
+
+      // console.log("Cropper results: ", this.$props.cropperResults[this.selectedIndex]);
+      
+      // There are saved cropper results
+      if (this.$props.cropperResults[this.selectedIndex] !== undefined) {
+
+        // console.log("Loading saved cropper results.");
+
+        this.$refs.cropper.setCoordinates({
+          left: this.$props.cropperResults[this.selectedIndex].left,
+          top: this.$props.cropperResults[this.selectedIndex].top,
+          width: this.$props.cropperResults[this.selectedIndex].width,
+          height: this.$props.cropperResults[this.selectedIndex].height,
+        });
+      }
+      // There are no saved cropper results
+      else {
+        // console.log("No saved cropper results.");
         this.$refs.cropper.setCoordinates({left: 0, top: 0, width: 1, height: 1});
       }
     },
+    clearCrop() {
+      if(this.manualCropMode) {
+        // console.log("Clearing the crop.");
+        this.$refs.cropper.setCoordinates({left: 0, top: 0, width: 1, height: 1});
+      }
+      this.saveCropperResults(this.$refs.cropper.coordinates, this.selectedIndex);
+    },
     resetToAutomaticCrop() {
-      console.log("Resetting crop to automatic crop.");
+      // console.log("Resetting crop to automatic crop.");
       this.manualCropMode = false;
 
-      let index = this.$props.files.indexOf(this.selectedImage);
-      let data = this.$props.croppedApiResults[index];
-      if(index === -1) index = 0;
-
       this.$refs.cropper.setCoordinates({
-          left: this.$props.croppedApiResults[index].xmin,
-          top: this.$props.croppedApiResults[index].ymin,
+          left: this.$props.croppedApiResults[this.selectedIndex].xmin,
+          top: this.$props.croppedApiResults[this.selectedIndex].ymin,
           width:
-            this.$props.croppedApiResults[index].xmax -
-            this.$props.croppedApiResults[index].xmin,
+            this.$props.croppedApiResults[this.selectedIndex].xmax -
+            this.$props.croppedApiResults[this.selectedIndex].xmin,
           height:
-            this.$props.croppedApiResults[index].ymax -
-            this.$props.croppedApiResults[index].ymin,
+            this.$props.croppedApiResults[this.selectedIndex].ymax -
+            this.$props.croppedApiResults[this.selectedIndex].ymin,
         });
     },
     nextFile() {
@@ -285,14 +337,14 @@ export default {
       } else if (index < this.files.length - 1) {
         this.$props.changeSelectedImage(this.files[index + 1]);
         this.$refs.cropper.setCoordinates({
-          x: this.$props.croppedApiResults[index + 1].xmax,
-          y: this.$props.croppedApiResults[index + 1].ymax,
+          x: this.$props.croppedApiResults[index].xmin,
+          y: this.$props.croppedApiResults[index].ymin,
           width:
-            this.$props.croppedApiResults[index + 1].xmax -
-            this.$props.croppedApiResults[index + 1].xmin,
+            this.$props.croppedApiResults[index].xmax -
+            this.$props.croppedApiResults[index].xmin,
           height:
-            this.$props.croppedApiResults[index + 1].ymax -
-            this.$props.croppedApiResults[index + 1].ymin,
+            this.$props.croppedApiResults[index].ymax -
+            this.$props.croppedApiResults[index].ymin,
         });
       }
     },
@@ -315,25 +367,7 @@ export default {
         this.$props.croppedImages.push(canvas.toDataURL());
       }
 
-      if (this.$props.cropperResults[index] !== null) {
-        this.$refs.cropper.setCoordinates({
-          x: this.$props.cropperResults[index + 1].x,
-          y: this.$props.cropperResults[index + 1].y,
-          width: this.$props.cropperResults[index + 1].width,
-          height: this.$props.cropperResults[index + 1].height,
-        });
-      } else {
-        this.$refs.cropper.setCoordinates({
-          x: this.$props.croppedApiResults[index].xmax,
-          y: this.$props.croppedApiResults[index].ymax,
-          width:
-            this.$props.croppedApiResults[index].xmax -
-            this.$props.croppedApiResults[index].xmin,
-          height:
-            this.$props.croppedApiResults[index].ymax -
-            this.$props.croppedApiResults[index].ymin,
-        });
-      }
+      this.resetToAutomaticCrop();
     },
     changeCropper() {
       if (this.switchModel) {
@@ -366,8 +400,8 @@ export default {
       }
 
       this.$refs.cropper.setCoordinates({
-        x: this.$props.croppedApiResults[0].xmax,
-        y: this.$props.croppedApiResults[0].ymax,
+        left: this.$props.croppedApiResults[0].xmin,
+        top: this.$props.croppedApiResults[0].ymin,
         width:
           this.$props.croppedApiResults[0].xmax -
           this.$props.croppedApiResults[0].xmin,

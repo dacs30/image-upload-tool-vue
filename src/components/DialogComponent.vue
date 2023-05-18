@@ -59,6 +59,7 @@
 </template>
 
 <script>
+import { VueElement } from "vue";
 import CropZoneDialogCard from "../containers/CropZoneDialogCard.vue";
 import UploadZoneDialogCard from "../containers/UploadZoneDialogCard.vue";
 import axios from "axios";
@@ -109,7 +110,7 @@ export default {
     },
     openModal() {
       this.modal = true;
-      this.doDetectron = false; // Resets the detectron to false, stupid bugfix
+      this.doDetectron = false;
     },
     closeModal() {
       this.cropImagesPage = false;
@@ -119,6 +120,7 @@ export default {
       this.selectedImage = null;
       this.croppedApiResults = [];
       this.detectronFiles = [];
+      this.cropperResults = [];
     },
     changeDetectron() {
       this.doDetectron = !this.doDetectron;
@@ -175,10 +177,13 @@ export default {
     changeSelectedImage(file) {
       this.selectedImage = file;
     },
-    saveCropperResults(cropperResults) {
+    saveCropperResults(results, index) {
       // add cropper results to cropperResults array
-      console.log(cropperResults);
-      this.cropperResults.push(cropperResults);
+
+      // done this way to force this.cropperResults to update (this.cropperResults[index] = ... does not update itself)
+      var tmp = this.cropperResults;
+      tmp[index] = results;
+      this.cropperResults = tmp;
     },
     uploadFiles() {
       this.croppedImages.forEach((image) => {
