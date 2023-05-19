@@ -20,10 +20,7 @@
         type="info"
         v-model="isBlurred"
         variant="tonal"
-        text=" One of images look to be blurred. You can go back and re-upload them,
-          if you want."
-        closable
-        close-label="Close Alert"
+        text=" One or more of your images looks to be blurred. You can go back and re-upload them, if you want."
         color="info"
       >
       </v-alert>
@@ -46,11 +43,38 @@
       </v-slide-group>
     </div>
     <div class="d-flex justify-center">
-      <v-btn color="info" @click="manualCrop" variant="outlined">Manual Crop</v-btn>
+      <v-btn color="info"
+        @click="manualCrop"
+        variant="outlined"
+        >Manual Crop
+        <v-tooltip
+          activator="parent"
+          location="bottom"
+        >Middle click and drag to create a box.</v-tooltip>
+      </v-btn>
       <div class="pr-2"></div>
-      <v-btn color="info" @click="clearCrop" variant="outlined">Clear</v-btn>
+      <v-btn
+        color="info"
+        @click="clearCrop"
+        variant="outlined"
+        
+      >Clear
+      <v-tooltip
+          activator="parent"
+          location="bottom"
+        >Clear the manual crop you made.</v-tooltip>
+      </v-btn>
       <div class="pr-2"></div>
-      <v-btn color="info" @click="resetToAutomaticCrop" variant="outlined">Automatic Crop</v-btn>
+      <v-btn
+        color="info"
+        @click="resetToAutomaticCrop"
+        variant="outlined"
+      >Automatic Crop
+      <v-tooltip
+          activator="parent"
+          location="bottom"
+        >Load the automatic crop.</v-tooltip>
+      </v-btn>
     </div>
     <div class="d-flex justify-center">
       <div>
@@ -109,6 +133,7 @@
 <script>
 import "vue-advanced-cropper/dist/style.css";
 import { Cropper } from "vue-advanced-cropper";
+import axios from "axios";
 
 export default {
   name: "CropZoneDialogCard",
@@ -184,6 +209,33 @@ export default {
     },
   },
   methods: {
+    /**
+     * Sends a patch request to the API for each manual crop result.
+     */
+    async patchChanges() {
+      for(var i = 0; i < this.$props.files.length; i++) {
+
+        console.log("Sending patch request for file", i);
+
+        if(this.$props.cropperResults[i] !== undefined) {
+          // The patch request
+          const response = await axios.patch("http://127.0.0.1:5000/",
+          {
+            "pKey": this.$props.croppedApiResults[i].id,
+            "coords": { 
+              "xMin": this.$props.cropperResults[i].left,
+              "xMax": this.$props.cropperResults[i].left + this.$props.cropperResults[i].width,
+              "yMin": this.$props.cropperResults[i].top,
+              "yMax": this.$props.cropperResults[i].top + this.$props.cropperResults[i].height,
+            }
+          }).catch((e) => {
+            console.log(e);
+          });
+        }
+      }
+      console.log("uploading files");
+      this.$props.uploadFiles();
+    },
     /**
      * Checks if the cropper results should be saved; if they should, saves them.
      * The cropper results will be saved if the default box has been modified and the user is in the "manual cropping" mode
@@ -297,7 +349,6 @@ export default {
      * Any changes in automatic crop mode will not be saved.
      */
     resetToAutomaticCrop() {
-      this.manualCropMode = false;
 
       this.$refs.cropper.setCoordinates({
           left: this.$props.croppedApiResults[this.selectedIndex].xmin,
@@ -309,6 +360,11 @@ export default {
             this.$props.croppedApiResults[this.selectedIndex].ymax -
             this.$props.croppedApiResults[this.selectedIndex].ymin,
         });
+
+        console.log("Resetting to automatic cropping.", this.$props.croppedApiResults[this.selectedIndex]);
+
+        this.manualCropMode = false;
+
     },
     nextFile() {
       let index = 0;
@@ -331,33 +387,17 @@ export default {
 
       this.selectedIndex = index + 1;
 
-      console.log("index", index);
-      console.log("this.files.length", this.files.length);
-
       // if index is last, call uploadFiles
       if (index === this.files.length - 1) {
-        console.log("uploading files");
-        this.$props.uploadFiles();
-      } else if (this.$props.cropperResults[index] !== null) {
-        this.$props.changeSelectedImage(this.files[index + 1]);
-        this.$refs.cropper.setCoordinates({
-          x: this.$props.cropperResults[index + 1].x,
-          y: this.$props.cropperResults[index + 1].y,
-          width: this.$props.cropperResults[index + 1].width,
-          height: this.$props.cropperResults[index + 1].height,
-        });
-      } else if (index < this.files.length - 1) {
-        this.$props.changeSelectedImage(this.files[index + 1]);
-        this.$refs.cropper.setCoordinates({
-          x: this.$props.croppedApiResults[index].xmin,
-          y: this.$props.croppedApiResults[index].ymin,
-          width:
-            this.$props.croppedApiResults[index].xmax -
-            this.$props.croppedApiResults[index].xmin,
-          height:
-            this.$props.croppedApiResults[index].ymax -
-            this.$props.croppedApiResults[index].ymin,
-        });
+        this.patchChanges();
+      }
+      else if (this.$props.cropperResults[index + 1] !== undefined || index < this.files.length - 1) {
+        if (this.switchModel) {
+        this.$props.changeSelectedImage(this.$props.detectronFiles[index + 1]);
+      } else {
+        this.$props.changeSelectedImage(this.$props.files[index + 1]);
+      }
+        this.resetToAutomaticCrop();
       }
     },
     clickedImage(file) {
@@ -386,14 +426,16 @@ export default {
         let index = this.$props.files.indexOf(this.selectedImage);
         console.log("From switch", index);
         // check if there is a detectron file before changing selected image
-        return this.changeSelectedImage(this.$props.detectronFiles[index]);
-      } else {
+        this.changeSelectedImage(this.$props.detectronFiles[index]);
+      }
+      else {
         let index = this.$props.detectronFiles.indexOf(this.selectedImage);
         if (index === -1) {
           index = this.$props.files.indexOf(this.selectedImage);
         }
-        return this.changeSelectedImage(this.$props.files[index]);
+        this.changeSelectedImage(this.$props.files[index]);
       }
+      this.resetToAutomaticCrop();
     },
   },
   mounted() {
