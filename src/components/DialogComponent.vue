@@ -122,7 +122,7 @@ export default {
         try {
           const formData = new FormData();
           formData.append("file", this.files[i]);
-          applyDetectron ? formData.append("applyDetectron", 'true') : formData.append("applyDetectron",'false');
+          applyDetectron ? formData.append("applyDetectron", 'true') : formData.append("applyDetectron", 'false');
           console.log(applyDetectron);
           const response = await axios({
             method: "post",
@@ -130,34 +130,119 @@ export default {
             data: formData,
             headers: { "Content-Type": "multipart/form-data" },
           });
+          console.log("Printing out the reposnse of the POST request below:");
           console.log(response.data);
           this.croppedApiResults.push(response.data);
 
+          // Get the prediction masks for the current image
+          let detectron_pred_masks = response.data.detectron_pred_masks;
+
+          // Get the original image file
+          const originalImageFile = this.files[i];
+
+          // Load and mask the image
+          const maskedFile = await this.loadAndMaskImage(originalImageFile, detectron_pred_masks);
+
+          // Check if there is a file and push it to the detectronFiles array
+          if (maskedFile) {
+            this.detectronFiles.push(maskedFile);
+          } else {
+            this.detectronFiles.push(originalImageFile);
+          }
+
+          /*
+          //unsure if neeeded
+          //TODO: decide whether needed
           let byteCharacters = atob(response.data.detectron);
           let byteNumbers = new Array(byteCharacters.length);
 
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-          }
+          // for (let i = 0; i < byteCharacters.length; i++) {
+          //   byteNumbers[i] = byteCharacters.charCodeAt(i);
+          // }
 
-          let byteArray = new Uint8Array(byteNumbers);
+          // let byteArray = new Uint8Array(byteNumbers);
 
-          let file = new File([byteArray], "detectron.png", {
-            type: "image/png",
-          });
+          // let file = new File([byteArray], "detectron.png", {
+          //   type: "image/png",
+          // });
 
-          // check if there is a file, if there is not, then push the first file
-          if (file === undefined) {
-            this.detectronFiles.push(this.files[i]);
-          } else {
-            this.detectronFiles.push(file);
-          }
+          // // check if there is a file, if there is not, then push the first file
+          // if (file === undefined) {
+          //   this.detectronFiles.push(this.files[i]);
+          // } else {
+          //   this.detectronFiles.push(file);
+          // }
+          */
         } catch (error) {
           console.log(error);
         }
       }
       this.isLoading = false;
       this.cropImagesPage = !this.cropImagesPage;
+    },
+    async loadAndMaskImage(originalImageFile, predMasks) {
+      return new Promise((resolve, reject) => {
+        const originalImage = new Image();
+
+        // load event listener to handle the image loading
+        originalImage.addEventListener("load", () => {
+          // Create a new canvas element
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+
+          // Set the canvas width and height to match the original image
+          canvas.width = originalImage.width;
+          canvas.height = originalImage.height;
+
+          // Draw the original image on the canvas
+          context.drawImage(originalImage, 0, 0);
+
+          // Flatten the predMasks array to simplify the iteration
+          const flattenedMasks = predMasks.flat(2);
+
+          // Iterate over the flattenedMasks array to create the mask
+          for (let i = 0; i < flattenedMasks.length; i++) {
+            const mask = flattenedMasks[i];
+            if (mask) {
+              // Calculate the x and y coordinates of the current pixel
+              const x = i % originalImage.width;
+              const y = Math.floor(i / originalImage.width);
+
+              // Set the color for the masked portion
+              context.fillStyle = "rgba(255, 0, 0, 1)"; 
+
+              // Draw a rectangle for the masked pixel
+              context.fillRect(x, y, 1, 1);
+            }
+          }
+
+          // Convert the canvas content to a data URL
+          const maskedDataURL = canvas.toDataURL("image/png");
+
+          // Create a new File object from the data URL
+          const maskedFile = this.dataURLToFile(maskedDataURL, originalImageFile.name);
+
+          // Resolve the Promise with the masked file
+          resolve(maskedFile);
+        });
+
+        // Set the source of the original image to the URL.createObjectURL of the original image file
+        // unsure if needed
+        originalImage.src = URL.createObjectURL(originalImageFile);
+      });
+    },
+
+    // Helper function to convert data URL to File object
+    dataURLToFile(dataURL, filename) {
+      const arr = dataURL.split(",");
+      const mime = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new File([u8arr], filename, { type: mime });
     },
     changeSelectedImage(file) {
       this.selectedImage = file;
