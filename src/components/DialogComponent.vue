@@ -198,21 +198,34 @@ export default {
           context.drawImage(originalImage, 0, 0);
 
           // Flatten the predMasks array to simplify the iteration
-          const flattenedMasks = predMasks.flat(2);
+          // const flattenedMasks = predMasks.flat(2);
 
-          // Iterate over the flattenedMasks array to create the mask
-          for (let i = 0; i < flattenedMasks.length; i++) {
-            const mask = flattenedMasks[i];
-            if (mask) {
-              // Calculate the x and y coordinates of the current pixel
-              const x = i % originalImage.width;
-              const y = Math.floor(i / originalImage.width);
+          //get the number of masks
+          let numMasks = Object.keys(predMasks).length;
+          // Iterate over the predMasks array
+          for (let i = 0; i < numMasks; i++) {
+            //get the number of pixels (width-wise)
+            let numPixelsWidth = Object.keys(predMasks[i]).length;
+            //iterate over the width
+            for(let j = 0; j < numPixelsWidth; j++) {
+              //get the number of pixels (height-wise)
+              let numPixelsHeight = Object.keys(predMasks[i][j]).length;
+              //iterate over the height
+              for(let k = 0; k < numPixelsHeight; k++) {
+                let currentPixel = predMasks[i][j][k];
+                //check if current pixel is true (there is a mask there)
+                if (currentPixel) {
+                  // Calculate the x and y coordinates of the current pixel
+                  let x = k;
+                  let y = j;
 
-              // Set the color for the masked portion
-              context.fillStyle = "rgba(255, 0, 0, 1)"; 
+                  // Set the color for the masked portion
+                  context.fillStyle = "rgba(0, 0, 0, 1)";
 
-              // Draw a rectangle for the masked pixel
-              context.fillRect(x, y, 1, 1);
+                  // Draw a rectangle for the masked pixel
+                  context.fillRect(x, y, 1, 1);
+                }
+              }
             }
           }
 
