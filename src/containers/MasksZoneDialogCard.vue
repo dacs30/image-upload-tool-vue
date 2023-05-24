@@ -99,23 +99,25 @@ export default {
         const pixelY = Math.round((y / rect.height) * image.naturalHeight); // Calculate the pixel Y coordinate
 
         console.log(`Clicked pixel position (X, Y): (${pixelX}, ${pixelY})`);
+        this.updateMasks(pixelX, pixelY);
       };
     },
     updateMasks(pixelX, pixelY) {
       //first time running, initialize the maskVisibilityList
       if (this.maskVisibilityList.length === 0) {
-        for (let i = 0; i < this.detectronFiles.length; i++) {
+        let currentPredMask = this.predMasksList[this.selectedIndex];
+        let numMasks = Object.keys(currentPredMask).length;
+        for (let i = 0; i < numMasks; i++) {
           this.maskVisibilityList.push(true);
         }
       }
-      //iterate through the predMasksList
-      for (let i = 0; i < this.predMasksList.length; i++) {
-        //iterate through the predMasksList[i]
-        for (let j = 0; j < this.predMasksList[i].length; j++) {
-          //if the pixel is in the mask, set the maskVisibilityList[i] to false
-          if (this.predMasksList[i][j][pixelY][pixelX] === 1) {
-            this.maskVisibilityList[i] = false;
-          }
+      let currentPredMask = this.predMasksList[this.selectedIndex];
+      let numMasks = Object.keys(currentPredMask).length;
+      for (let i = 0; i < numMasks; i++) {
+        if (currentPredMask[i][pixelY][pixelX] === true) {
+          this.maskVisibilityList[i] = !this.maskVisibilityList[i];
+          console.log("mask " + i + " is visible");
+          break;
         }
       }
     }

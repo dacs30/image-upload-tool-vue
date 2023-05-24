@@ -159,8 +159,18 @@ export default {
           // Get the original image file
           const originalImageFile = this.files[i];
 
+          //generate visibilityList
+          let visibilityList = [];
+          let numMasks = Object.keys(detectron_pred_masks).length;
+          for (let i = 0; i < numMasks; i++) {
+            visibilityList.push(true);
+          }
+          // visibilityList[0] = false;
+          // visibilityList[1] = false;
+          // visibilityList[2] = false;
+
           // Load and mask the image
-          const maskedFile = await this.loadAndMaskImage(originalImageFile, detectron_pred_masks);
+          const maskedFile = await this.loadAndMaskImage(originalImageFile, detectron_pred_masks, visibilityList);
 
           // Check if there is a file and push it to the detectronFiles array
           if (maskedFile) {
@@ -201,8 +211,15 @@ export default {
           // Get the original image file
           const originalImageFile = this.files[i];
 
+          //generate visibilityList
+          let visibilityList = [];
+          let numMasks = Object.keys(detectron_pred_masks).length;
+          for (let i = 0; i < numMasks; i++) {
+            visibilityList.push(true);
+          }
+
           // Load and mask the image
-          const maskedFile = await this.loadAndMaskImage(originalImageFile, detectron_pred_masks);
+          const maskedFile = await this.loadAndMaskImage(originalImageFile, detectron_pred_masks, visibilityList);
 
           // Check if there is a file and push it to the detectronFiles array
           if (maskedFile) {
@@ -242,7 +259,7 @@ export default {
       this.isLoading = false;
       this.cropImagesPage = !this.cropImagesPage;
     },
-    async loadAndMaskImage(originalImageFile, predMasks) {
+    async loadAndMaskImage(originalImageFile, predMasks, maskVisibilityList) {
       return new Promise((resolve, reject) => {
         const originalImage = new Image();
 
@@ -266,6 +283,11 @@ export default {
           let numMasks = Object.keys(predMasks).length;
           // Iterate over the predMasks array
           for (let i = 0; i < numMasks; i++) {
+            //check if the mask is visible
+            if(!maskVisibilityList[i]) {
+              //skip the current mask if it is not visible
+              continue;
+            }
             //get the number of pixels (width-wise)
             let numPixelsWidth = Object.keys(predMasks[i]).length;
             //iterate over the width
