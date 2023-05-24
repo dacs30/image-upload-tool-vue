@@ -42,6 +42,15 @@
           color="info"
         ></v-progress-circular>
       </div>
+      <MasksZoneDialogCard
+        v-else-if="predMasksPage"
+        :goBackFromMasksPage="goBackFromMasksPage" 
+        :close-modal="closeModal" 
+        :files="files"
+        :detectronFiles="detectronFiles"
+        :generateURL="generateURL"
+        :predMasksList="predMasksList"
+      />
       <UploadZoneDialogCard
         v-else
         :changeSelectedImage="changeSelectedImage"
@@ -50,7 +59,8 @@
         :generateURL="generateURL"
         :remove="remove"
         :showCropScreen="showCropScreen"
-        :croppedApiResults="croppedApiResults"
+        :showMasksScreen="showMasksScreen"
+        :croppedApiResults="croppedApiResults" 
       />
     </v-card>
   </v-dialog>
@@ -58,6 +68,7 @@
 
 <script>
 import CropZoneDialogCard from "../containers/CropZoneDialogCard.vue";
+import MasksZoneDialogCard from "../containers/MasksZoneDialogCard.vue";
 import UploadZoneDialogCard from "../containers/UploadZoneDialogCard.vue";
 import axios from "axios";
 
@@ -65,15 +76,18 @@ export default {
   components: {
     CropZoneDialogCard,
     UploadZoneDialogCard,
-  },
+    MasksZoneDialogCard
+},
   data() {
     return {
       cropImagesPage: false,
+      predMasksPage: false,
       isDragging: false,
       model: null,
       files: [],
       selectedImage: null, // have selected image as first file or null
       detectronFiles: [],
+      predMasksList: [],
       modal: false,
       croppedImages: [], // object to store cropped images
       croppedApiResults: [], // object to store cropped images
@@ -88,6 +102,9 @@ export default {
     },
     goBackFromCroppedPages() {
       this.cropImagesPage = false;
+    },
+    goBackFromMasksPage() {
+      this.predMasksPage = false;
     },
     generateURL(file) {
       if (!file) {
@@ -114,6 +131,50 @@ export default {
       this.selectedImage = null;
       this.croppedApiResults = [];
       this.detectronFiles = [];
+      this.predMasksPage = false;
+      this.predMasksList = [];
+    },
+    async showMasksScreen(applyDetectron) {
+      // upload each of the files to the api
+      this.isLoading = true;
+      for (let i = 0; i < this.files.length; i++) {
+        try {
+          const formData = new FormData();
+          formData.append("file", this.files[i]);
+          applyDetectron ? formData.append("applyDetectron", 'true') : formData.append("applyDetectron", 'false');
+          console.log(applyDetectron);
+          const response = await axios({
+            method: "post",
+            url: "http://127.0.0.1:5000/", // replace with your API endpoint
+            data: formData,
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+          console.log("Printing out the reposnse of the POST request below:");
+          console.log(response.data);
+          this.croppedApiResults.push(response.data);
+
+          // Get the prediction masks for the current image
+          let detectron_pred_masks = response.data.detectron_pred_masks;
+
+          // Get the original image file
+          const originalImageFile = this.files[i];
+
+          // Load and mask the image
+          const maskedFile = await this.loadAndMaskImage(originalImageFile, detectron_pred_masks);
+
+          // Check if there is a file and push it to the detectronFiles array
+          if (maskedFile) {
+            this.detectronFiles.push(maskedFile);
+            this.predMasksList.push(detectron_pred_masks);
+          } else {
+            this.detectronFiles.push(originalImageFile);
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      }
+      this.isLoading = false;
+      this.predMasksPage = !this.predMasksPage;
     },
     async showCropScreen(applyDetectron) {
       // upload each of the files to the api
@@ -146,6 +207,7 @@ export default {
           // Check if there is a file and push it to the detectronFiles array
           if (maskedFile) {
             this.detectronFiles.push(maskedFile);
+            this.predMasksList.push(detectron_pred_masks);
           } else {
             this.detectronFiles.push(originalImageFile);
           }

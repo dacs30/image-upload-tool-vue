@@ -48,12 +48,18 @@
         <v-btn color="info" @click="closeModal">Cancel</v-btn>
       </div>
       <div class="d-flex justify-center action-btn-div">
-        <v-btn
+        <!-- <v-btn
           color="info"
           @click="showCropScreen(this.applyDetectron)"
           :disabled="files.length === 0"
           >Crop Images</v-btn
-        >
+        > -->
+        <v-btn
+            color="info"
+            @click="showMasksScreen(this.applyDetectron)"
+            :disabled="files.length === 0"
+            >Show Masks</v-btn
+          >
       </div>
     </div>
   </v-card-actions>
@@ -72,6 +78,10 @@ export default {
       required: true,
     },
     showCropScreen: {
+      type: Function,
+      required: true,
+    },
+    showMasksScreen: {
       type: Function,
       required: true,
     },
