@@ -80,6 +80,10 @@ export default {
             type: Function,
             required: true,
         },
+        loadAndMaskImage: {
+            type: Function,
+            required: true,
+        },
     },
     methods: { 
       handleImageClick(event) {
@@ -102,7 +106,7 @@ export default {
         this.updateMasks(pixelX, pixelY);
       };
     },
-    updateMasks(pixelX, pixelY) {
+    async updateMasks(pixelX, pixelY) {
       //first time running, initialize the maskVisibilityList
       if (this.maskVisibilityList.length === 0) {
         let currentPredMask = this.predMasksList[this.selectedIndex];
@@ -115,8 +119,14 @@ export default {
       let numMasks = Object.keys(currentPredMask).length;
       for (let i = 0; i < numMasks; i++) {
         if (currentPredMask[i][pixelY][pixelX] === true) {
+          console.log("clicked on mask " + i);
           this.maskVisibilityList[i] = !this.maskVisibilityList[i];
-          console.log("mask " + i + " is visible");
+          const maskedFile = await this.loadAndMaskImage(this.files[this.selectedIndex], currentPredMask, this.maskVisibilityList);
+          //change the img element to the masked image
+          const imageElement = this.$refs.image;
+          if (imageElement) {
+            imageElement.src = this.generateURL(maskedFile);
+          }
           break;
         }
       }

@@ -50,6 +50,7 @@
         :detectronFiles="detectronFiles"
         :generateURL="generateURL"
         :predMasksList="predMasksList"
+        :loadAndMaskImage="loadAndMaskImage"
       />
       <UploadZoneDialogCard
         v-else
