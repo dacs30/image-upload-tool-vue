@@ -277,9 +277,6 @@ export default {
           // Draw the original image on the canvas
           context.drawImage(originalImage, 0, 0);
 
-          // Flatten the predMasks array to simplify the iteration
-          // const flattenedMasks = predMasks.flat(2);
-
           //get the number of masks
           let numMasks = Object.keys(predMasks).length;
           // Iterate over the predMasks array
@@ -289,20 +286,20 @@ export default {
               //skip the current mask if it is not visible
               continue;
             }
-            //get the number of pixels (width-wise)
-            let numPixelsWidth = Object.keys(predMasks[i]).length;
-            //iterate over the width
-            for(let j = 0; j < numPixelsWidth; j++) {
-              //get the number of pixels (height-wise)
-              let numPixelsHeight = Object.keys(predMasks[i][j]).length;
-              //iterate over the height
-              for(let k = 0; k < numPixelsHeight; k++) {
+            //get the height
+            let numPixelsHeight = Object.keys(predMasks[i]).length;
+            //iterate over the height
+            for(let j = 0; j < numPixelsHeight; j++) {
+              //get the width
+              let numPixelsWidth = Object.keys(predMasks[i][j]).length;
+              //iterate over the width
+              for(let k = 0; k < numPixelsWidth; k++) {
                 let currentPixel = predMasks[i][j][k];
                 //check if current pixel is true (there is a mask there)
                 if (currentPixel) {
                   // Calculate the x and y coordinates of the current pixel
-                  let x = k;
-                  let y = j;
+                  let x = k; //k iterates over the width
+                  let y = j; //j iterates over the height
 
                   // Set the color for the masked portion from color list
                   let maskColorList = ["black", "red", "green", "blue", "yellow", "purple", "orange", "gray"];
