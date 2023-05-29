@@ -304,8 +304,9 @@ export default {
                   let x = k;
                   let y = j;
 
-                  // Set the color for the masked portion
-                  context.fillStyle = "rgba(0, 0, 0, 1)";
+                  // Set the color for the masked portion from color list
+                  let maskColorList = ["black", "red", "green", "blue", "yellow", "purple", "orange", "gray"];
+                  context.fillStyle = maskColorList[i % maskColorList.length];
 
                   // Draw a rectangle for the masked pixel
                   context.fillRect(x, y, 1, 1);
