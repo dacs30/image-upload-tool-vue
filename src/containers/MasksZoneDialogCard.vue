@@ -117,7 +117,8 @@ export default {
       }
       let currentPredMask = this.predMasksList[this.selectedIndex];
       let numMasks = Object.keys(currentPredMask).length;
-      for (let i = 0; i < numMasks; i++) {
+      //looping through the masks in reverse order to get the topmost mask
+      for (let i = numMasks - 1; i >= 0; i--) {
         if (currentPredMask[i][pixelY][pixelX] === true) {
           console.log("clicked on mask " + i);
           this.maskVisibilityList[i] = !this.maskVisibilityList[i];
