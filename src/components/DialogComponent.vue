@@ -51,6 +51,7 @@
         :generateURL="generateURL"
         :predMasksList="predMasksList"
         :loadAndMaskImage="loadAndMaskImage"
+        :goFromPredMasksPageToCropImagesPage="goFromPredMasksPageToCropImagesPage"
       />
       <UploadZoneDialogCard
         v-else
@@ -150,8 +151,6 @@ export default {
             data: formData,
             headers: { "Content-Type": "multipart/form-data" },
           });
-          console.log("Printing out the reposnse of the POST request below:");
-          console.log(response.data);
           this.croppedApiResults.push(response.data);
 
           // Get the prediction masks for the current image
@@ -166,9 +165,6 @@ export default {
           for (let i = 0; i < numMasks; i++) {
             visibilityList.push(true);
           }
-          // visibilityList[0] = false;
-          // visibilityList[1] = false;
-          // visibilityList[2] = false;
 
           // Load and mask the image
           const maskedFile = await this.loadAndMaskImage(originalImageFile, detectron_pred_masks, visibilityList);
@@ -356,6 +352,11 @@ export default {
         );
       });
       this.closeModal();
+    },
+    goFromPredMasksPageToCropImagesPage(updatedDetectronFiles) {
+      this.detectronFiles = updatedDetectronFiles;
+      this.predMasksPage = !this.predMasksPage;
+      this.cropImagesPage = !this.cropImagesPage;
     },
   },
 };

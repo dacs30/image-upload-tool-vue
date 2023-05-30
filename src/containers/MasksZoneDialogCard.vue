@@ -24,10 +24,10 @@
                 <v-btn color="info" block @click="closeModal">Cancel</v-btn>
             </div>
             <div v-if="selectedIndex !== files.length - 1" class="d-flex justify-center action-btn-div">
-                <v-btn color="info" block @click="nextFile">Next</v-btn>
+                <v-btn color="info" block @click="nextFile">Next Image</v-btn>
             </div>
             <div v-else class="d-flex justify-center action-btn-div">
-                <v-btn color="info" block @click="nextFile" :disabled="files.length === 0">Save</v-btn>
+                <v-btn color="info" block @click="goFromPredMasksPageToCropImagesPage(detectronFiles)" :disabled="files.length === 0">Crop Images</v-btn>
             </div>
         </div>
     </v-card-actions>
@@ -52,7 +52,7 @@ export default {
     data() {
         return {
             selectedIndex: 0,
-            maskVisibilityList: [],
+            masksVisibilityLists: [],
         };
     },
     props: {
@@ -84,6 +84,10 @@ export default {
             type: Function,
             required: true,
         },
+        goFromPredMasksPageToCropImagesPage: {
+            type: Function,
+            required: true,
+        },
     },
     methods: { 
       handleImageClick(event) {
@@ -108,29 +112,42 @@ export default {
     },
     async updateMasks(pixelX, pixelY) {
       //first time running, initialize the maskVisibilityList
-      if (this.maskVisibilityList.length === 0) {
+      if (this.masksVisibilityLists[this.selectedIndex].length === 0) {
         let currentPredMask = this.predMasksList[this.selectedIndex];
         let numMasks = Object.keys(currentPredMask).length;
         for (let i = 0; i < numMasks; i++) {
-          this.maskVisibilityList.push(true);
+          this.masksVisibilityLists[this.selectedIndex].push(true);
         }
       }
       let currentPredMask = this.predMasksList[this.selectedIndex];
       let numMasks = Object.keys(currentPredMask).length;
       //looping through the masks in reverse order to get the topmost mask
       for (let i = numMasks - 1; i >= 0; i--) {
-        if (currentPredMask[i][pixelY][pixelX] === true) {
+        if (currentPredMask[i][pixelY][pixelX] == true) {
           console.log("clicked on mask " + i);
-          this.maskVisibilityList[i] = !this.maskVisibilityList[i];
-          const maskedFile = await this.loadAndMaskImage(this.files[this.selectedIndex], currentPredMask, this.maskVisibilityList);
+          this.masksVisibilityLists[this.selectedIndex][i] = !this.masksVisibilityLists[this.selectedIndex][i];
+          const maskedFile = await this.loadAndMaskImage(this.files[this.selectedIndex], currentPredMask, this.masksVisibilityLists[this.selectedIndex]);
           //change the img element to the masked image
-          const imageElement = this.$refs.image;
-          if (imageElement) {
-            imageElement.src = this.generateURL(maskedFile);
-          }
+          this.detectronFiles[this.selectedIndex] = maskedFile;
+        //   console.log("changed detectronFiles for index " + this.selectedIndex);
+        //   const imageElement = this.$refs.image;
+        //   if (imageElement) {
+        //     imageElement.src = this.generateURL(maskedFile);
+        //   }
           break;
         }
       }
+    },
+    nextFile() {
+        //increment the index to show the next file
+        this.selectedIndex++;
+    }
+  },
+  beforeMount() {
+    console.log("before mount for mask zone dialog card");
+    //add as many empty lists as there are files
+    for(let i = 0; i < this.files.length; i++) {
+        this.masksVisibilityLists.push([]);
     }
   }
 };
