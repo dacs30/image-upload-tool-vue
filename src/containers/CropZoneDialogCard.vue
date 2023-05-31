@@ -192,7 +192,7 @@ export default {
         console.log("uploading files");
         this.$props.uploadFiles();
       } else if (this.$props.cropperResults[index] !== null) {
-        this.$props.changeSelectedImage(this.files[index + 1]);
+        this.$props.changeSelectedImage(this.detectronFiles[index + 1]);
         this.$refs.cropper.setCoordinates({
           x: this.$props.cropperResults[index + 1].x,
           y: this.$props.cropperResults[index + 1].y,
@@ -200,7 +200,7 @@ export default {
           height: this.$props.cropperResults[index + 1].height,
         });
       } else if (index < this.files.length - 1) {
-        this.$props.changeSelectedImage(this.files[index + 1]);
+        this.$props.changeSelectedImage(this.detectronFiles[index + 1]);
         this.$refs.cropper.setCoordinates({
           x: this.$props.croppedApiResults[index + 1].xmax,
           y: this.$props.croppedApiResults[index + 1].ymax,
