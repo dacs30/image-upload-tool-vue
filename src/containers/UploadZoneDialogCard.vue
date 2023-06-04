@@ -3,6 +3,13 @@
   <div>
   <v-checkbox v-model="applyDetectron" label="Use Detectron to block out PII"></v-checkbox>
   </div>
+  <div>
+    <v-btn variant="outlined" elevation="1" @click="toggleCapturePhotoDialogModal">Take a Photo with Device Camera</v-btn>
+  </div>
+  <CapturePhotoDialogComponent v-if="capturePhotoDialogModal"/>
+  <br>
+  OR
+  <br>
   <div
     class="dropzone-container"
     @dragover="dragover"
@@ -66,8 +73,13 @@
 </template>
 
 <script>
+import CapturePhotoDialogComponent from "../components/CapturePhotoDialogComponent.vue";
+
 export default {
   name: "UploadZoneDialogCard",
+  components: {
+    CapturePhotoDialogComponent,
+  },
   props: {
     closeModal: {
       type: Function,
@@ -106,6 +118,7 @@ export default {
     return {
       isDragging: false,
       applyDetectron: false,
+      capturePhotoDialogModal: false,
     };
   },
   methods: {
@@ -130,6 +143,10 @@ export default {
       this.$refs.file.files = e.dataTransfer.files;
       this.onChange();
       this.isDragging = false;
+    },
+    toggleCapturePhotoDialogModal() {
+      this.capturePhotoDialogModal = !this.capturePhotoDialogModal;
+      console.log("this.captureDialogModal", this.capturePhotoDialogModal);
     },
   },
 };
