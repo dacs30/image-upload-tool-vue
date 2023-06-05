@@ -9,8 +9,12 @@
                 <h2 id="dialogHeading">Take a Photo Dialog</h2>
             </div>
             <v-btn id="openCamBtn" @click="openCam">Open Webcam</v-btn>
-            <video id="videoCam"></video>
-            <v-btn v-model="showDialog" id="captureBtn">Capture Photo</v-btn>
+            <div id="videoContainer">
+                <video id="videoCam" ref="videoCam">Video stream not available</video>
+                <br>
+                <v-btn v-model="showDialog" id="captureBtn">Capture Photo</v-btn>
+            </div>
+            <canvas id="intermediate-canvas"></canvas>
         </v-card>
     </v-dialog>
 </template>
@@ -54,7 +58,10 @@ export default {
                     width: { ideal: 1080 },
                     height: { ideal: 720 }
                 }
-            }
+            },
+            isCameraOpen: false,
+            isPhotoTaken: false,
+            link: '#',
         };
     },
     methods: {
@@ -86,18 +93,29 @@ export default {
         },
         //utility function to get check the resolution of the webcam video stream
         async getWebCameraResolution() {
-            let stream = await navigator.mediaDevices.getUserMedia(this.constraints);
+            let video = this.$refs.videoCam;
+            let videoTrack = video.srcObject.getVideoTracks()[0];
+            let settings = videoTrack.getSettings();
+            let width = settings.width;
+            let height = settings.height;
+            console.log("width: ", width, "height: ", height);
+        },
+        stopWebCamera() {
+            let videoCamSource = this.$refs.videoCam.srcObject;
+            if(videoCamSource == null) {
+                return;
+            }
+            let tracks = videoCamSource.getTracks();
 
-            let stream_settings = stream.getVideoTracks()[0].getSettings();
-
-            // actual width & height of the camera video
-            let stream_width = stream_settings.width;
-            let stream_height = stream_settings.height;
-
-            console.log('Width: ' + stream_width + 'px');
-            console.log('Height: ' + stream_height + 'px');
+            tracks.forEach(track => {
+                track.stop();
+            });
+            this.$refs.videoCam.srcObject = null;
         },
         handleCancelBtn() {
+            //first stop the webcam feed
+            this.stopWebCamera();
+            //then close the dialog
             this.$emit("close-capture-photo");
         },
     },
