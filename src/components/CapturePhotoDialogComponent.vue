@@ -8,24 +8,31 @@
                 </v-btn>
                 <h2 id="dialogHeading">Take a Photo Dialog</h2>
             </div>
-            <v-btn id="openCamBtn" @click="openCam">Open Webcam</v-btn>
+            <div>
+                <v-btn v-if="isCameraOpen" class="openCamBtn" @click="stopWebCamera">Stop Camera</v-btn>
+                <v-btn v-else :disabled="isCameraOpenLoading" class="openCamBtn" @click="openCam">Open Camera</v-btn>
+            </div>
             <div id="videoContainer">
                 <video id="videoCam" ref="videoCam">Video stream not available</video>
                 <br>
-                <v-btn v-model="showDialog" id="captureBtn">Capture Photo</v-btn>
+                <v-btn v-if="isCameraOpen" id="captureBtn" @click="capturePhoto">Capture Photo</v-btn>
             </div>
-            <canvas id="intermediate-canvas"></canvas>
+            <div>
+                <canvas v-if="isCameraOpen" id="intermediateCanvas" ref="intermediateCanvas">Placeholder Text</canvas>
+            </div>
         </v-card>
     </v-dialog>
 </template>
 
 <style scoped>
 #videoCam {
-    width: 60%;
-    height: 40%;
-    margin: 0   auto;
+    /* width: 1080px;
+    height: 720px; */
+    width: 99vw;
+    height: 66vh;
+    margin: 0 auto;
 }
-#openCamBtn {
+.openCamBtn {
     margin: 1% 10%;
     background-color: lightskyblue;
 }
@@ -60,12 +67,14 @@ export default {
                 }
             },
             isCameraOpen: false,
+            isCameraOpenLoading: false,
             isPhotoTaken: false,
             link: '#',
         };
     },
     methods: {
         openCam() {
+            this.isCameraOpenLoading = true;
             let allMediaDevices = navigator.mediaDevices;
             //if allMediaDevices are null or getUserMedia function DNE
             if (!allMediaDevices || !allMediaDevices.getUserMedia) {
@@ -86,6 +95,7 @@ export default {
                     console.log("Succesfully playing live webcam feed");
                 };
                 this.getWebCameraResolution();
+                this.isCameraOpen = true;
             }).catch((e) => {
                 console.log("An error occured with getting webcam feed");
                 console.log(e.name + ": " + e.message);
@@ -100,6 +110,7 @@ export default {
             let height = settings.height;
             console.log("width: ", width, "height: ", height);
         },
+        //function to stop the web camera feed
         stopWebCamera() {
             let videoCamSource = this.$refs.videoCam.srcObject;
             if(videoCamSource == null) {
@@ -111,12 +122,28 @@ export default {
                 track.stop();
             });
             this.$refs.videoCam.srcObject = null;
+            this.isCameraOpen = false;
+            this.isCameraOpenLoading = false;
         },
         handleCancelBtn() {
             //first stop the webcam feed
             this.stopWebCamera();
             //then close the dialog
             this.$emit("close-capture-photo");
+        },
+        //function to capture a photo from the webcam feed
+        capturePhoto() {
+            let video = this.$refs.videoCam;
+            let canvas = this.$refs.intermediateCanvas;
+            let context = canvas.getContext('2d');
+            //set the canvas dimensions to the webcam feed dimensions
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            console.log(canvas.width, canvas.height);
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            let dataURL = canvas.toDataURL('image/png');
+            this.link = dataURL;
+            this.isPhotoTaken = true;
         },
     },
 }
