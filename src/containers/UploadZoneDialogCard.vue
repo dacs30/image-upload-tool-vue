@@ -1,12 +1,14 @@
 <template>
   <v-card-title> Upload your images </v-card-title>
   <div>
-  <v-checkbox v-model="applyDetectron" label="Use Detectron to block out PII"></v-checkbox>
+    <v-checkbox v-model="applyDetectron" label="Use Detectron to block out PII"></v-checkbox>
   </div>
   <div>
     <v-btn variant="outlined" elevation="1" @click="toggleCapturePhotoDialogModal">Take a Photo with Device Camera</v-btn>
   </div>
-  <CapturePhotoDialogComponent v-if="capturePhotoDialogModal"/>
+  <CapturePhotoDialogComponent 
+    v-if="capturePhotoDialogModal"
+    @close-capture-photo="toggleCapturePhotoDialogModal"/>
   <br>
   OR
   <br>
