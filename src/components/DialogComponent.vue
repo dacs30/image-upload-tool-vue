@@ -62,7 +62,8 @@
         :remove="remove"
         :showCropScreen="showCropScreen"
         :showMasksScreen="showMasksScreen"
-        :croppedApiResults="croppedApiResults" 
+        :croppedApiResults="croppedApiResults"
+        :dataURLToFile="dataURLToFile" 
       />
     </v-card>
   </v-dialog>

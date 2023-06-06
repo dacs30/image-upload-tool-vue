@@ -8,6 +8,8 @@
   </div>
   <CapturePhotoDialogComponent 
     v-if="capturePhotoDialogModal"
+    :files="files"
+    :dataURLToFile="dataURLToFile"
     @close-capture-photo="toggleCapturePhotoDialogModal"/>
   <br>
   OR
@@ -112,6 +114,10 @@ export default {
       required: true,
     },
     changeSelectedImage: {
+      type: Function,
+      required: true,
+    },
+    dataURLToFile: {
       type: Function,
       required: true,
     },

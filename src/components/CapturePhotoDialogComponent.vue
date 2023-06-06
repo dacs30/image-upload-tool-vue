@@ -15,11 +15,15 @@
             <div id="videoContainer">
                 <video id="videoCam" ref="videoCam">Video stream not available</video>
                 <br>
-                <v-btn v-if="isCameraOpen" id="captureBtn" @click="capturePhoto">Capture Photo</v-btn>
+                <v-btn v-if="isCameraOpen" id="captureBtn" @click="capturePhoto">
+                    <span v-if="isPhotoTaken">Retake Photo</span>
+                    <span v-else>Capture Photo</span>
+                </v-btn>
             </div>
             <div>
                 <canvas v-if="isCameraOpen" id="intermediateCanvas" ref="intermediateCanvas">Placeholder Text</canvas>
             </div>
+            <v-btn v-if="isPhotoTaken" id="saveBtn" @click="savePhoto">Save Photo</v-btn>
         </v-card>
     </v-dialog>
 </template>
@@ -47,6 +51,10 @@
     position: absolute;
     left: 0;
 }
+#saveBtn {
+    margin: 1% 10%;
+    background-color: lightgreen;
+}
 #dialogHeading {
     text-align: center;
 }
@@ -71,6 +79,16 @@ export default {
             isPhotoTaken: false,
             link: '#',
         };
+    },
+    props: {
+        files: {
+            type: Array,
+            required: true,
+        },
+        dataURLToFile: {
+            type: Function,
+            required: true,
+        },
     },
     methods: {
         openCam() {
@@ -145,6 +163,13 @@ export default {
             this.link = dataURL;
             this.isPhotoTaken = true;
         },
+        savePhoto() {
+            let newPhotoFile = this.dataURLToFile(this.link, "newPhotoFile.png");
+            this.files.push(newPhotoFile);
+            console.log("pushed new photo file to files list");
+            //handleCancelBtn closes the dialog here not cancel
+            this.handleCancelBtn();
+        }
     },
 }
 
