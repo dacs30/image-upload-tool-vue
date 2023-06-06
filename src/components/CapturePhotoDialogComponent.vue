@@ -14,6 +14,9 @@
             </div>
             <div id="videoContainer">
                 <video id="videoCam" ref="videoCam">Video stream not available</video>
+                <div v-if="isCameraOpen" :style="boxStyle"></div>
+            </div>
+            <div>
                 <br>
                 <v-btn v-if="isCameraOpen" id="captureBtn" @click="capturePhoto">
                     <span v-if="isPhotoTaken">Retake Photo</span>
@@ -32,9 +35,10 @@
 #videoCam {
     /* width: 1080px;
     height: 720px; */
-    width: 99vw;
+    /* width: 99vw; */
     height: 66vh;
     margin: 0 auto;
+    border: 1px solid black;
 }
 .openCamBtn {
     margin: 1% 10%;
@@ -58,6 +62,12 @@
 #dialogHeading {
     text-align: center;
 }
+#videoContainer {
+  position: relative;
+}
+#videoContainer > div {
+  position: absolute;
+}
 </style>
 
 
@@ -78,6 +88,12 @@ export default {
             isCameraOpenLoading: false,
             isPhotoTaken: false,
             link: '#',
+            boxProps: {
+                width: 0,
+                height: 0,
+                top: 0,
+                left: 0,
+            },
         };
     },
     props: {
@@ -111,9 +127,10 @@ export default {
                 video.onloadedmetadata = () => {
                     video.play()
                     console.log("Succesfully playing live webcam feed");
+                    this.getWebCameraResolution();
+                    this.isCameraOpen = true;
+                    console.log("isCameraOpen: ", this.isCameraOpen);
                 };
-                this.getWebCameraResolution();
-                this.isCameraOpen = true;
             }).catch((e) => {
                 console.log("An error occured with getting webcam feed");
                 console.log(e.name + ": " + e.message);
@@ -149,6 +166,16 @@ export default {
             //then close the dialog
             this.$emit("close-capture-photo");
         },
+        //crop the image to the size of the boxProps
+        cropImage() {
+            let canvas = this.$refs.intermediateCanvas;
+            let context = canvas.getContext('2d');
+            let img = new Image();
+            img.src = this.link;
+            context.drawImage(img, this.boxProps.left, this.boxProps.top, this.boxProps.width, this.boxProps.height, 0, 0, this.boxProps.width, this.boxProps.height);
+            let dataURL = canvas.toDataURL('image/png');
+            this.link = dataURL;
+        },
         //function to capture a photo from the webcam feed
         capturePhoto() {
             let video = this.$refs.videoCam;
@@ -162,6 +189,7 @@ export default {
             let dataURL = canvas.toDataURL('image/png');
             this.link = dataURL;
             this.isPhotoTaken = true;
+            this.cropImage();
         },
         savePhoto() {
             let newPhotoFile = this.dataURLToFile(this.link, "newPhotoFile.png");
@@ -169,7 +197,39 @@ export default {
             console.log("pushed new photo file to files list");
             //handleCancelBtn closes the dialog here not cancel
             this.handleCancelBtn();
-        }
+        },
+    },
+    computed: {
+        boxStyle() {
+            let video = this.$refs.videoCam;
+            let videoWidth = 66 * video.videoWidth / 100; // adjusting for 66 vh
+            let videoHeight = 66 * video.videoHeight / 100;
+
+            //get the position of the video element
+            let videoPos = video.getBoundingClientRect();
+            let videoXPos = videoPos.left;
+            let videoYPos = videoPos.top;
+
+            //calculate the box size
+            let boxWidth = videoWidth * 0.4;
+            let boxHeight = videoHeight * 0.8;
+            let boxXPos = videoXPos + (videoWidth * 0.3);
+            let boxYPos = videoYPos - (videoHeight * 0.1);
+
+            this.boxProps.width = boxWidth;
+            this.boxProps.height = boxHeight;
+            this.boxProps.top = boxYPos;
+            this.boxProps.left = boxXPos;
+
+            return {
+                position: 'absolute',
+                left: `${boxXPos}px`,
+                top: `${boxYPos}px`,
+                width: `${boxWidth}px`,
+                height: `${boxHeight}px`,
+                border: '10px solid red',
+            };
+        },
     },
 }
 
