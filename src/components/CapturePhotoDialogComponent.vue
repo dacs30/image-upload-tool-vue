@@ -177,19 +177,49 @@ export default {
             this.link = dataURL;
         },
         //function to capture a photo from the webcam feed
+        // capturePhoto() {
+        //     let video = this.$refs.videoCam;
+        //     let canvas = this.$refs.intermediateCanvas;
+        //     let context = canvas.getContext('2d');
+        //     //set the canvas dimensions to the webcam feed dimensions
+        //     canvas.width = video.videoWidth;
+        //     canvas.height = video.videoHeight;
+        //     console.log(canvas.width, canvas.height);
+        //     context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        //     let dataURL = canvas.toDataURL('image/png');
+        //     this.link = dataURL;
+        //     this.isPhotoTaken = true;
+        //     this.cropImage();
+        // },
         capturePhoto() {
             let video = this.$refs.videoCam;
             let canvas = this.$refs.intermediateCanvas;
             let context = canvas.getContext('2d');
-            //set the canvas dimensions to the webcam feed dimensions
+            // Set the canvas dimensions to the webcam feed dimensions
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            console.log(canvas.width, canvas.height);
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            let videoRect = video.getBoundingClientRect();
+            let boxRect = document.querySelector('#videoContainer > div').getBoundingClientRect();
+
+            let scaleX = video.videoWidth / videoRect.width;
+            let scaleY = video.videoHeight / videoRect.height;
+
+            let boxX = (boxRect.left - videoRect.left) * scaleX;
+            let boxY = (boxRect.top - videoRect.top) * scaleY;
+            let boxWidth = boxRect.width * scaleX;
+            let boxHeight = boxRect.height * scaleY;
+
+            let imageData = context.getImageData(boxX, boxY, boxWidth, boxHeight);
+
+            canvas.width = boxWidth;
+            canvas.height = boxHeight;
+            context.putImageData(imageData, 0, 0);
+
             let dataURL = canvas.toDataURL('image/png');
             this.link = dataURL;
             this.isPhotoTaken = true;
-            this.cropImage();
         },
         savePhoto() {
             let newPhotoFile = this.dataURLToFile(this.link, "newPhotoFile.png");
