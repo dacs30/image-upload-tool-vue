@@ -9,6 +9,9 @@
                 <h2 id="dialogHeading">Take a Photo Dialog</h2>
             </div>
             <div>
+                <h3>Instructions: Please place your work/paper within the red bounding box</h3>
+            </div>
+            <div>
                 <v-btn v-if="isCameraOpen" class="openCamBtn" @click="stopWebCamera">Stop Camera</v-btn>
                 <v-btn v-else :disabled="isCameraOpenLoading" class="openCamBtn" @click="openCam">Open Camera</v-btn>
             </div>
@@ -64,6 +67,7 @@
 }
 #videoContainer {
   position: relative;
+  border: 1px solid black;
 }
 #videoContainer > div {
   position: absolute;
@@ -244,7 +248,7 @@ export default {
             let boxWidth = videoWidth * 0.4;
             let boxHeight = videoHeight * 0.8;
             let boxXPos = videoXPos + (videoWidth * 0.3);
-            let boxYPos = videoYPos - (videoHeight * 0.1);
+            let boxYPos = videoYPos - (videoHeight * 0.2);
 
             this.boxProps.width = boxWidth;
             this.boxProps.height = boxHeight;
