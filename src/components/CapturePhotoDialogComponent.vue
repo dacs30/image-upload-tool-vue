@@ -76,6 +76,11 @@
 
 
 <script>
+// import * as cocoSSD from '@tensorflow-models/coco-ssd';
+import * as tf from '@tensorflow/tfjs';
+import '@tensorflow/tfjs-backend-cpu';
+import '@tensorflow/tfjs-backend-webgl';
+import { loadGraphModel } from '@tensorflow/tfjs';
 
 export default {
     name: "CapturePhotoDialogComponent",
@@ -134,6 +139,7 @@ export default {
                     this.getWebCameraResolution();
                     this.isCameraOpen = true;
                     console.log("isCameraOpen: ", this.isCameraOpen);
+                    this.detectObjects();
                 };
             }).catch((e) => {
                 console.log("An error occured with getting webcam feed");
@@ -232,6 +238,25 @@ export default {
             //handleCancelBtn closes the dialog here not cancel
             this.handleCancelBtn();
         },
+        async detectObjects() {
+            const MODEL_URL = 'src/TFJSModel/model.json'; 
+            const model = await loadGraphModel(MODEL_URL);
+            const img = tf.browser.fromPixels(this.$refs.videoCam);
+            const resized = tf.image.resizeBilinear(img, [640, 480]);
+            const casted = resized.cast('int32');
+            const expanded = casted.expandDims(0);
+            const obj = await model.executeAsync(expanded);
+
+            console.log("obj: ", obj);
+            const boxes = await obj[4].array();
+            const classes = await obj[5].array();
+            const scores = await obj[6].array();
+            console.log("boxes: ", boxes);
+            console.log("classes: ", classes);
+            console.log("scores: ", scores);
+            // const predictions = await model.predict(this.$refs.videoCam);
+            // console.log("predictions: ", predictions);
+        }
     },
     computed: {
         boxStyle() {
